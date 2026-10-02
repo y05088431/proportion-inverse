@@ -100,804 +100,143 @@
       width: 0.7rem;
       height: 0.7rem;
       border-radius: 9999px;
-      background: #22c55e;
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-      animation: pulse 1.8s infinite;
+      display: inline-block;
+      margin-right: 0.5rem;
     }
 
-    .action-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-      70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-    }
-
-    .flash-amber {
-      animation: flash 0.7s ease-in-out 2;
-    }
-
-    @keyframes flash {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.04); }
-    }
-
-    .check-btn {
-      background: #10b981;
-      color: white;
-      font-weight: 800;
-      border-radius: 0.75rem;
-      padding: 0.375rem 1rem;
-      font-size: 0.75rem;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
-      cursor: pointer;
-      transition: background 0.2s;
-      border: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .check-btn:hover {
-      background: #059669;
-    }
-
-    .check-btn:active {
-      transform: scale(0.95);
+    .shadow-soft {
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800">
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 to-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-indigo-200">
-          <i class="fa-solid fa-chart-line"></i>
+<body class="min-h-screen text-slate-800">
+  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <div class="space-y-6">
+        <div class="formula-box shadow-soft rounded-3xl p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">比例定数</p>
+              <h1 class="mt-2 text-2xl font-extrabold text-slate-800">分数の比例定数とグラフの傾き</h1>
+            </div>
+            <div class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1.5 text-sm font-bold text-indigo-600">
+              <span class="status-dot bg-emerald-500"></span>
+              連動中
+            </div>
+          </div>
+
+          <div class="mt-6 grid gap-5 md:grid-cols-[auto_1fr] md:items-center">
+            <div class="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
+              <div class="fraction" aria-live="polite">
+                <div id="fractionNum" class="num text-3xl">3</div>
+                <div class="bar"></div>
+                <div id="fractionDen" class="den text-3xl">4</div>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center gap-3 text-sm text-slate-600">
+                <span class="pill px-3 py-1 text-slate-700">k = <span id="fractionText">3/4</span></span>
+                <span class="text-slate-500">小数</span>
+                <span class="pill px-3 py-1 text-indigo-700" id="decimalValue">0.75</span>
+              </div>
+
+              <p id="explanationText" class="text-lg font-bold text-slate-700 leading-relaxed">
+                右に4進むと、上に3上がります。
+              </p>
+            </div>
+          </div>
         </div>
-        <div>
-          <h1 class="text-lg md:text-xl font-black leading-tight text-slate-900">分数の比例定数と傾きラボ</h1>
-          <p class="text-[11px] text-slate-500 font-semibold">「右に分母、上に分子」でグラフの傾きがスッキリ！</p>
+
+        <div class="rounded-3xl bg-white p-5 shadow-soft border border-slate-200">
+          <div class="flex items-center justify-between gap-4 mb-3 flex-wrap">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">スライダー</p>
+              <h2 class="mt-1 text-xl font-extrabold text-slate-800">分子の大きさ</h2>
+            </div>
+            <div class="pill px-3 py-1 text-indigo-700 text-sm font-bold">
+              <span id="sliderValueLabel">3</span>
+            </div>
+          </div>
+
+          <input id="ratioSlider" class="range w-full h-2 rounded-lg cursor-pointer" type="range" min="1" max="9" step="1" value="3" />
+
+          <div class="mt-4 flex justify-between text-sm text-slate-500 font-semibold">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+            <span>6</span>
+            <span>7</span>
+            <span>8</span>
+            <span>9</span>
+          </div>
         </div>
       </div>
 
-      <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-sm font-bold">
-        <button class="tab-button active px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition" data-tab="explore" type="button">
-          <i class="fa-solid fa-compass"></i>
-          <span>探索モード</span>
-        </button>
-        <button class="tab-button px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition" data-tab="slope" type="button">
-          <i class="fa-solid fa-person-hiking"></i>
-          <span>坂道体感モード</span>
-        </button>
-        <button class="tab-button px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition" data-tab="game" type="button">
-          <i class="fa-solid fa-bullseye"></i>
-          <span>標的あてゲーム</span>
-        </button>
+      <div class="rounded-3xl bg-white p-5 shadow-soft border border-slate-200">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">確認</p>
+        <h2 class="mt-2 text-xl font-extrabold text-slate-800">グラフの見方</h2>
+
+        <div class="mt-5 space-y-4 text-sm text-slate-600">
+          <div class="grid-cell p-4">
+            <p class="font-bold text-slate-700">比例の式</p>
+            <p class="mt-2 text-lg font-extrabold text-indigo-600" id="equationText">y = (3/4)x</p>
+          </div>
+
+          <div class="grid-cell p-4">
+            <p class="font-bold text-slate-700">分数の意味</p>
+            <p class="mt-2 text-base leading-relaxed">
+              <span class="text-red-600 font-extrabold">分子</span>は上、<span class="text-blue-600 font-extrabold">分母</span>は下です。
+            </p>
+          </div>
+
+          <div class="grid-cell p-4">
+            <p class="font-bold text-slate-700">傾きの説明</p>
+            <p class="mt-2 leading-relaxed" id="slopeText">
+              右に4進むと、上に3上がるので、傾きは 3/4 です。
+            </p>
+          </div>
+        </div>
       </div>
     </div>
-  </header>
-
-  <main class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-6 w-full">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <aside class="lg:col-span-5 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-5">
-        <div class="formula-box rounded-2xl p-4 text-center relative overflow-hidden">
-          <div class="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400 mb-2">現在の比例定数 a（傾き）</div>
-
-          <div class="flex items-center justify-center gap-4 min-h-[72px]">
-            <div id="formula-render" class="text-2xl font-black text-slate-800">a = 3/4</div>
-            <div class="text-slate-300 text-2xl">=</div>
-            <div class="text-left">
-              <div class="text-[10px] uppercase tracking-[0.12em] text-slate-400 font-black">小数</div>
-              <div id="dec-value" class="text-xl font-black font-mono text-slate-800">0.75</div>
-            </div>
-          </div>
-
-          <div id="slope-msg" class="mt-3 text-xs md:text-sm font-bold bg-indigo-50 text-indigo-900 py-2.5 px-3 rounded-xl border border-indigo-100 flex items-center justify-center gap-2">
-            <i class="fa-solid fa-person-walking-arrow-right text-indigo-500 text-base"></i>
-            <span>右に <strong id="msg-dx" class="text-blue-600 text-base">4</strong> 進むと、上に <strong id="msg-dy" class="text-red-600 text-base">3</strong> 進む！</span>
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-100">
-            <div class="flex items-center justify-between">
-              <label class="text-[11px] font-black text-blue-600 flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span>
-                分母（横方向・x の増加量）
-              </label>
-              <span id="den-value" class="pill px-2.5 py-0.5 text-xs text-blue-600">4</span>
-            </div>
-            <input id="input-denominator" class="range w-full mt-3" type="range" min="1" max="10" step="1" value="4" />
-            <div class="flex justify-between text-[10px] font-black text-slate-400 px-1 mt-2">
-              <span>1</span>
-              <span>5</span>
-              <span>10</span>
-            </div>
-          </div>
-
-          <div class="bg-red-50/70 p-4 rounded-xl border border-red-100">
-            <div class="flex items-center justify-between">
-              <label class="text-[11px] font-black text-red-600 flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-red-600 inline-block"></span>
-                分子（縦方向・y の増加量）
-              </label>
-              <span id="num-value" class="pill px-2.5 py-0.5 text-xs text-red-600">+3</span>
-            </div>
-            <input id="input-numerator" class="range w-full mt-3" type="range" min="-10" max="10" step="1" value="3" />
-            <div class="flex justify-between text-[10px] font-black text-slate-400 px-1 mt-2">
-              <span>-10</span>
-              <span>0</span>
-              <span>+10</span>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div class="text-[11px] font-black text-slate-400 mb-2 flex items-center justify-between">
-            <span>ワンタップで比較する</span>
-            <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
-          </div>
-          <div class="grid grid-cols-4 gap-2">
-            <button class="preset-btn bg-slate-100 hover:bg-indigo-50 rounded-xl border border-slate-200 py-2 transition" data-num="1" data-den="2" type="button">
-              <div class="fraction mx-auto text-lg">
-                <span class="num">1</span>
-                <span class="bar"></span>
-                <span class="den">2</span>
-              </div>
-            </button>
-            <button class="preset-btn bg-slate-100 hover:bg-indigo-50 rounded-xl border border-slate-200 py-2 transition" data-num="1" data-den="1" type="button">
-              <div class="fraction mx-auto text-lg">
-                <span class="num">1</span>
-                <span class="bar"></span>
-                <span class="den">1</span>
-              </div>
-            </button>
-            <button class="preset-btn bg-slate-100 hover:bg-indigo-50 rounded-xl border border-slate-200 py-2 transition" data-num="3" data-den="1" type="button">
-              <div class="fraction mx-auto text-lg">
-                <span class="num">3</span>
-                <span class="bar"></span>
-                <span class="den">1</span>
-              </div>
-            </button>
-            <button class="preset-btn bg-slate-100 hover:bg-indigo-50 rounded-xl border border-slate-200 py-2 transition" data-num="-2" data-den="3" type="button">
-              <div class="fraction mx-auto text-lg">
-                <span class="num">2</span>
-                <span class="bar"></span>
-                <span class="den">3</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-slate-100 flex flex-wrap gap-4 text-[11px] font-black text-slate-600">
-          <label class="flex items-center gap-2 cursor-pointer"><input id="toggle-steps" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600" /> <span>直角三角形を表示</span></label>
-          <label class="flex items-center gap-2 cursor-pointer"><input id="toggle-points" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600" /> <span>格子点を表示</span></label>
-        </div>
-      </aside>
-
-      <section class="lg:col-span-7 space-y-4">
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-          <div class="flex justify-between items-center mb-2 px-1 gap-3">
-            <div class="flex items-center gap-2">
-              <span class="status-dot"></span>
-              <span id="canvas-title" class="text-xs font-black text-slate-600">グラフキャンバス (方眼紙)</span>
-            </div>
-            <div id="action-area" class="action-group">
-              <button id="step-btn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
-                <i class="fa-solid fa-shoe-prints"></i>
-                <span>階段を1段登る</span>
-              </button>
-              <button id="reset-btn" type="button" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-black shadow-sm">
-                <i class="fa-solid fa-rotate-left"></i>
-                <span>リセット</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="w-full rounded-xl border border-slate-200 overflow-hidden bg-slate-100/50">
-            <svg id="graph" viewBox="0 0 420 420" class="w-full h-full block" role="img" aria-label="比例定数のグラフ"></svg>
-          </div>
-
-          <div class="mt-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-start gap-2.5">
-            <i class="fa-solid fa-lightbulb text-amber-500 text-base mt-0.5"></i>
-            <div id="hint-text">分母が大きいとゆるやか、分子が大きいと急な坂になります。右に分母、上に分子を見てね！</div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="grid-cell p-3 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-arrow-trend-up"></i></div>
-            <div>
-              <div class="text-[10px] uppercase tracking-[0.12em] font-black text-slate-400">急さ（絶対値）</div>
-              <div id="stat-steep" class="text-sm font-black text-slate-800">標準的 (0.75)</div>
-            </div>
-          </div>
-
-          <div class="grid-cell p-3 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-compass-drafting"></i></div>
-            <div>
-              <div class="text-[10px] uppercase tracking-[0.12em] font-black text-slate-400">傾斜角</div>
-              <div id="stat-angle" class="text-sm font-black text-slate-800">36.9°</div>
-            </div>
-          </div>
-
-          <div class="grid-cell p-3 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-lg"><i class="fa-solid fa-arrows-up-down-left-right"></i></div>
-            <div>
-              <div class="text-[10px] uppercase tracking-[0.12em] font-black text-slate-400">グラフの方向</div>
-              <div id="stat-dir" class="text-sm font-black text-slate-800">右上がり</div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <div id="game-panel" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-sm">
-      <div class="flex flex-wrap justify-between items-center gap-3">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl"><i class="fa-solid fa-trophy"></i></div>
-          <div>
-            <h2 class="font-black text-slate-900 text-base">標的あてチャレンジ！</h2>
-            <p class="text-xs text-slate-600">黄色の星 ★ をピッタリ通る分数の比例定数を作ろう！</p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <div class="text-right">
-            <div class="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">score</div>
-            <div id="score" class="text-2xl font-black text-amber-600 font-mono">0</div>
-          </div>
-          <button id="next-problem" type="button" class="bg-amber-500 hover:bg-amber-600 text-white rounded-xl px-4 py-2 text-xs font-black shadow-sm">次の問題</button>
-        </div>
-      </div>
-
-      <div id="game-feedback" class="mt-3 text-xs font-black text-slate-700 bg-white/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
-        <i class="fa-solid fa-crosshairs text-amber-500"></i>
-        <span id="feedback-text">スライダーを動かして、緑の線がターゲットの星に重なるように調整してね！</span>
-        <button id="check-answer-btn" type="button" class="check-btn" style="margin-left: auto;">
-          <i class="fa-solid fa-check"></i>
-          <span>チェック</span>
-        </button>
-      </div>
-    </div>
-  </main>
+  </div>
 
   <script>
-    const state = {
-      num: 3,
-      den: 4,
-      currentTab: 'explore',
-      stepIndex: 0,
-      isAnimating: false,
-      slopeAnimating: false,
-      slopeProgress: 0,
-      slopeRaf: null,
-      gameScore: 0,
-      target: { x: 4, y: 3 },
-      targetReached: false,
-      animX: 0,
-      animY: 0,
-    };
+    const slider = document.getElementById('ratioSlider');
+    const fractionNum = document.getElementById('fractionNum');
+    const fractionDen = document.getElementById('fractionDen');
+    const fractionText = document.getElementById('fractionText');
+    const decimalValue = document.getElementById('decimalValue');
+    const explanationText = document.getElementById('explanationText');
+    const equationText = document.getElementById('equationText');
+    const slopeText = document.getElementById('slopeText');
+    const sliderValueLabel = document.getElementById('sliderValueLabel');
 
-    const $ = (id) => document.getElementById(id);
+    const denominator = 4;
 
-    function getSlope() {
-      return state.den === 0 ? 0 : state.num / state.den;
+    function formatDecimal(value) {
+      return Number(value).toFixed(2);
     }
 
-    function signedNumber(value) {
-      return value > 0 ? `+${value}` : `${value}`;
+    function updateVisuals() {
+      const numerator = Number(slider.value);
+      const value = numerator / denominator;
+
+      fractionNum.textContent = numerator;
+      fractionDen.textContent = denominator;
+      fractionText.textContent = `${numerator}/${denominator}`;
+      decimalValue.textContent = formatDecimal(value);
+      sliderValueLabel.textContent = numerator;
+
+      explanationText.textContent = `右に${denominator}進むと、上に${numerator}上がります。`;
+      equationText.textContent = `y = (${numerator}/${denominator})x`;
+      slopeText.textContent = `右に${denominator}進むと、上に${numerator}上がるので、傾きは ${numerator}/${denominator} です。`;
     }
 
-    function fractionMarkup(num, den) {
-      const sign = num < 0 ? '-' : '';
-      const absNum = Math.abs(num);
-      return `
-        <div class="fraction">
-          <span class="num" style="color:${num >= 0 ? '#dc2626' : '#ef4444'};">${sign}${absNum}</span>
-          <span class="bar"></span>
-          <span class="den" style="color:#2563eb;">${den}</span>
-        </div>
-      `;
-    }
-
-    function updateFormula() {
-      const value = getSlope();
-      const absNum = Math.abs(state.num);
-
-      // 小数表示
-      $('dec-value').textContent = value.toFixed(2);
-
-      // スライダーの値表示
-      $('den-value').textContent = String(state.den);
-      $('num-value').textContent = signedNumber(state.num);
-
-      // 説明文の数値更新
-      $('msg-dx').textContent = String(state.den);
-      $('msg-dy').textContent = String(absNum);
-
-      // 分数の表示更新 - HTMLではなくテキストベースで確実に更新
-      $('formula-render').innerHTML = `
-        <div class="flex items-center gap-2 text-slate-800">
-          <span class="font-black">a</span>
-          <span class="text-slate-300 text-2xl">=</span>
-          ${fractionMarkup(state.num, state.den)}
-        </div>
-      `;
-
-      // 下の説明メッセージの更新
-      if (state.num > 0) {
-        $('slope-msg').innerHTML = `
-          <i class="fa-solid fa-arrow-trend-up text-emerald-500 text-base"></i>
-          <span>右に <strong class="text-blue-600 text-base">${state.den}</strong> 進むと、上に <strong class="text-red-600 text-base">${absNum}</strong> 進む！</span>
-        `;
-      } else if (state.num < 0) {
-        $('slope-msg').innerHTML = `
-          <i class="fa-solid fa-arrow-trend-down text-rose-500 text-base"></i>
-          <span>右に <strong class="text-blue-600 text-base">${state.den}</strong> 進むと、下に <strong class="text-red-600 text-base">${absNum}</strong> 進む！</span>
-        `;
-      } else {
-        $('slope-msg').innerHTML = `
-          <i class="fa-solid fa-grip-lines text-slate-500 text-base"></i>
-          <span>右に進んでも上下に動かないので、水平の直線です。</span>
-        `;
-      }
-
-      // 統計情報の更新
-      const angle = Math.atan(value) * 180 / Math.PI;
-      $('stat-angle').textContent = `${Math.abs(angle).toFixed(1)}°`;
-
-      let steepText = '標準的';
-      if (Math.abs(value) === 0) {
-        steepText = '水平 (0.00)';
-      } else if (Math.abs(value) < 0.4) {
-        steepText = 'とてもゆるやか';
-      } else if (Math.abs(value) < 0.8) {
-        steepText = 'ややゆるやか';
-      } else if (Math.abs(value) === 1) {
-        steepText = 'ちょうど45°';
-      } else if (Math.abs(value) < 2.5) {
-        steepText = '急な傾き';
-      } else {
-        steepText = 'とても急';
-      }
-      $('stat-steep').textContent = `${steepText} (${Math.abs(value).toFixed(2)})`;
-      $('stat-dir').textContent = value > 0 ? '右上がり' : value < 0 ? '右下がり' : '水平';
-      $('hint-text').innerHTML = '分母が大きいと傾きはゆるやかです。分子が大きいと、<strong>右に進んだときに上がる量が大きく</strong>なります。';
-
-      // ゲームモードで自動判定
-      if (state.currentTab === 'game') {
-        checkGame();
-      }
-      
-      drawGraph();
-    }
-
-    function switchTab(tab) {
-      state.currentTab = tab;
-      document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tab);
-        btn.classList.toggle('text-slate-600', btn.dataset.tab !== tab);
-        btn.classList.toggle('shadow-sm', btn.dataset.tab === tab);
-      });
-
-      if (tab === 'game') {
-        $('game-panel').classList.remove('hidden');
-        $('canvas-title').textContent = '標的あてゲーム';
-        $('action-area').innerHTML = `
-          <button id="step-btn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
-            <i class="fa-solid fa-shoe-prints"></i>
-            <span>階段を1段登る</span>
-          </button>
-          <button id="reset-btn" type="button" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-black shadow-sm">
-            <i class="fa-solid fa-rotate-left"></i>
-            <span>リセット</span>
-          </button>
-        `;
-        $('step-btn').addEventListener('click', playStepAnimation);
-        $('reset-btn').addEventListener('click', resetToDefaults);
-        if (!state.targetReached) setGameLevel();
-      } else if (tab === 'slope') {
-        $('game-panel').classList.add('hidden');
-        $('canvas-title').textContent = '坂道体感モード';
-        $('action-area').innerHTML = `
-          <button id="step-btn" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
-            <i id="slope-icon" class="fa-solid fa-play"></i>
-            <span id="slope-text">走らせる！</span>
-          </button>
-          <button id="reset-btn" type="button" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-black shadow-sm">
-            <i class="fa-solid fa-rotate-left"></i>
-            <span>リセット</span>
-          </button>
-        `;
-        $('step-btn').addEventListener('click', toggleSlope);
-        $('reset-btn').addEventListener('click', resetToDefaults);
-        stopSlope();
-      } else {
-        $('game-panel').classList.add('hidden');
-        $('canvas-title').textContent = 'グラフキャンバス (方眼紙)';
-        $('action-area').innerHTML = `
-          <button id="step-btn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
-            <i class="fa-solid fa-shoe-prints"></i>
-            <span>階段を1段登る</span>
-          </button>
-          <button id="reset-btn" type="button" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-black shadow-sm">
-            <i class="fa-solid fa-rotate-left"></i>
-            <span>リセット</span>
-          </button>
-        `;
-        $('step-btn').addEventListener('click', playStepAnimation);
-        $('reset-btn').addEventListener('click', resetToDefaults);
-      }
-
-      updateFormula();
-    }
-
-    function resetToDefaults() {
-      state.num = 3;
-      state.den = 4;
-      state.stepIndex = 0;
-      state.targetReached = false;
-      state.gameScore = 0;
-      $('score').textContent = '0';
-      $('input-numerator').value = '3';
-      $('input-denominator').value = '4';
-      if (state.currentTab === 'game') setGameLevel();
-      stopSlope();
-      updateFormula();
-    }
-
-    function setFraction(n, d) {
-      state.num = Number(n);
-      state.den = Number(d) || 1;
-      $('input-numerator').value = String(state.num);
-      $('input-denominator').value = String(state.den);
-      state.stepIndex = 0;
-      updateFormula();
-    }
-
-    function bindControls() {
-      // スライダー - input イベントで即座に更新
-      $('input-numerator').addEventListener('input', function(e) {
-        state.num = Number(e.target.value);
-        updateFormula();
-      });
-
-      $('input-denominator').addEventListener('input', function(e) {
-        state.den = Number(e.target.value) || 1;
-        updateFormula();
-      });
-
-      // プリセットボタン
-      document.querySelectorAll('.preset-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          setFraction(btn.dataset.num, btn.dataset.den);
-        });
-      });
-
-      // 次の問題ボタン
-      $('next-problem').addEventListener('click', setGameLevel);
-
-      // チェックボタン（ゲームモード用）
-      $('check-answer-btn').addEventListener('click', manualCheckGame);
-
-      // ステップボタン
-      $('step-btn').addEventListener('click', playStepAnimation);
-
-      // リセットボタン
-      $('reset-btn').addEventListener('click', resetToDefaults);
-
-      // チェックボタンの表示/非表示制御
-      const checkBtn = $('check-answer-btn');
-      if (checkBtn) {
-        checkBtn.style.display = 'none';
-      }
-    }
-
-    function drawGraph() {
-      const svg = $('graph');
-      const W = 420;
-      const H = 420;
-      const pad = 28;
-      const range = 10;
-      const x0 = W / 2;
-      const y0 = H / 2;
-      const scale = 18;
-      const slope = getSlope();
-      const showSteps = $('toggle-steps').checked;
-      const showPoints = $('toggle-points').checked;
-
-      let lines = '<rect x="0" y="0" width="420" height="420" fill="#f8fafc" />';
-
-      for (let i = -range; i <= range; i++) {
-        const x = x0 + i * scale;
-        const y = y0 - i * scale;
-        const major = i % 5 === 0;
-        const axis = i === 0;
-        lines += `<line x1="${x}" y1="${pad}" x2="${x}" y2="${H-pad}" stroke="${axis ? '#475569' : major ? '#cbd5e1' : '#e2e8f0'}" stroke-width="${axis ? 1.1 : major ? 0.75 : 0.5}" />`;
-        lines += `<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="${axis ? '#475569' : major ? '#cbd5e1' : '#e2e8f0'}" stroke-width="${axis ? 1.1 : major ? 0.75 : 0.5}" />`;
-      }
-
-      lines += `<line x1="${pad}" y1="${y0}" x2="${W-pad}" y2="${y0}" stroke="#475569" stroke-width="1.2" />`;
-      lines += `<line x1="${x0}" y1="${pad}" x2="${x0}" y2="${H-pad}" stroke="#475569" stroke-width="1.2" />`;
-
-      const x1 = -10;
-      const y1 = slope * x1;
-      const x2 = 10;
-      const y2 = slope * x2;
-      const px1 = x0 + x1 * scale;
-      const py1 = y0 - y1 * scale;
-      const px2 = x0 + x2 * scale;
-      const py2 = y0 - y2 * scale;
-      lines += `<line x1="${px1}" y1="${py1}" x2="${px2}" y2="${py2}" stroke="#059669" stroke-width="2.8" stroke-linecap="round" />`;
-
-      if (showSteps && state.den !== 0) {
-        const maxStep = 9;
-        for (let k = 0; k <= maxStep; k++) {
-          const sx = k * state.den;
-          const sy = k * state.num;
-          const ex = (k + 1) * state.den;
-          const ey = (k + 1) * state.num;
-
-          const p1x = x0 + sx * scale;
-          const p1y = y0 - sy * scale;
-          const p2x = x0 + ex * scale;
-          const p2y = y0 - ey * scale;
-          const midx = x0 + ((sx + ex) / 2) * scale;
-          const midy = y0 - ((sy + ey) / 2) * scale;
-
-          lines += `<line x1="${p1x}" y1="${p1y}" x2="${p2x}" y2="${p1y}" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" opacity="0.8" />`;
-          lines += `<line x1="${p2x}" y1="${p1y}" x2="${p2x}" y2="${p2y}" stroke="#dc2626" stroke-width="2.4" stroke-linecap="round" opacity="0.8" />`;
-
-          if (k === state.stepIndex) {
-            const rectX = Math.min(p1x, p2x);
-            const rectY = Math.min(p1y, p2y);
-            const rectW = Math.abs(p2x - p1x);
-            const rectH = Math.abs(p2y - p1y);
-            lines += `<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" fill="rgba(59,130,246,0.12)" />`;
-          }
-
-          if (k <= 8) {
-            lines += `<text x="${midx}" y="${p1y - 10}" font-size="11" font-weight="800" fill="#2563eb" text-anchor="middle">${state.den}</text>`;
-            lines += `<text x="${p2x + 10}" y="${midy}" font-size="11" font-weight="800" fill="#dc2626" text-anchor="start">${state.num >= 0 ? '+' : ''}${state.num}</text>`;
-          }
-        }
-      }
-
-      if (showPoints) {
-        for (let x = -range; x <= range; x++) {
-          const y = slope * x;
-          if (Number.isInteger(y) && Math.abs(x) <= range && Math.abs(y) <= range) {
-            const px = x0 + x * scale;
-            const py = y0 - y * scale;
-            const isOrigin = x === 0 && y === 0;
-            lines += `<circle cx="${px}" cy="${py}" r="${isOrigin ? 3.3 : 2.5}" fill="${isOrigin ? '#4f46e5' : '#10b981'}" stroke="#fff" stroke-width="1.1" />`;
-          }
-        }
-      }
-
-      if (state.currentTab === 'game') {
-        const tx = x0 + state.target.x * scale;
-        const ty = y0 - state.target.y * scale;
-        lines += `
-          <g>
-            <circle cx="${tx}" cy="${ty}" r="16" fill="none" stroke="#f59e0b" stroke-width="1.1" stroke-dasharray="3 3" />
-            <text x="${tx}" y="${ty + 6}" font-size="20" text-anchor="middle" fill="#f59e0b">★</text>
-          </g>
-        `;
-      }
-
-      if (state.isAnimating) {
-        const px = x0 + state.animX * scale;
-        const py = y0 - state.animY * scale;
-        lines += `<circle cx="${px}" cy="${py}" r="5.5" fill="#f59e0b" stroke="#fff" stroke-width="1.1" />`;
-      }
-
-      svg.innerHTML = lines;
-    }
-
-    function stepInfo() {
-      return {
-        x: state.stepIndex * state.den,
-        y: state.stepIndex * state.num,
-      };
-    }
-
-    function drawAnimatePoint(x, y) {
-      state.animX = x;
-      state.animY = y;
-      drawGraph();
-    }
-
-    function playStepAnimation() {
-      if (state.isAnimating) return;
-
-      const den = state.den;
-      const num = state.num;
-      const maxAbs = 10;
-      const nextX = (state.stepIndex + 1) * den;
-      const nextY = (state.stepIndex + 1) * num;
-
-      if (Math.abs(nextX) > maxAbs || Math.abs(nextY) > maxAbs) {
-        state.stepIndex = 0;
-        updateFormula();
-        return;
-      }
-
-      state.isAnimating = true;
-      const start = stepInfo();
-      const end = { x: nextX, y: nextY };
-      const totalFrames = 22;
-      let frame = 0;
-
-      function tick() {
-        const t = frame / totalFrames;
-        const x = start.x + (end.x - start.x) * t;
-        const y = start.y + (end.y - start.y) * t;
-        drawAnimatePoint(x, y);
-
-        frame += 1;
-        if (frame <= totalFrames) {
-          requestAnimationFrame(tick);
-        } else {
-          state.isAnimating = false;
-          state.stepIndex += 1;
-          if (Math.abs((state.stepIndex + 1) * den) > maxAbs || Math.abs((state.stepIndex + 1) * num) > maxAbs) {
-            state.stepIndex = 0;
-          }
-          drawGraph();
-        }
-      }
-
-      tick();
-    }
-
-    function toggleSlope() {
-      const icon = $('slope-icon');
-      const text = $('slope-text');
-
-      if (!state.slopeAnimating) {
-        state.slopeAnimating = true;
-        icon.className = 'fa-solid fa-pause';
-        text.textContent = '一時停止';
-        state.slopeProgress = 0;
-        state.slopeRaf = requestAnimationFrame(runSlope);
-      } else {
-        state.slopeAnimating = false;
-        if (state.slopeRaf) cancelAnimationFrame(state.slopeRaf);
-        icon.className = 'fa-solid fa-play';
-        text.textContent = '走らせる！';
-      }
-    }
-
-    function stopSlope() {
-      state.slopeAnimating = false;
-      if (state.slopeRaf) cancelAnimationFrame(state.slopeRaf);
-      const icon = $('slope-icon');
-      const text = $('slope-text');
-      if (icon && text) {
-        icon.className = 'fa-solid fa-play';
-        text.textContent = '走らせる！';
-      }
-    }
-
-    function runSlope() {
-      if (!state.slopeAnimating || state.currentTab !== 'slope') return;
-
-      const slope = getSlope();
-      const track = 8;
-      const progress = (state.slopeProgress + 0.01) % 1;
-      state.slopeProgress = progress;
-
-      const x = -track + progress * (track * 2);
-      const y = slope * x;
-
-      const svg = $('graph');
-      let lines = '<rect x="0" y="0" width="420" height="420" fill="#f8fafc" />';
-
-      for (let i = -10; i <= 10; i++) {
-        const xLine = 210 + i * 18;
-        const yLine = 210 - i * 18;
-        lines += `<line x1="${xLine}" y1="28" x2="${xLine}" y2="392" stroke="${i === 0 ? '#475569' : '#e2e8f0'}" stroke-width="${i === 0 ? 1.2 : 0.6}" />`;
-        lines += `<line x1="28" y1="${yLine}" x2="392" y2="${yLine}" stroke="${i === 0 ? '#475569' : '#e2e8f0'}" stroke-width="${i === 0 ? 1.2 : 0.6}" />`;
-      }
-
-      const ax1 = 210 - 10 * 18;
-      const ay1 = 210 - slope * (-10) * 18;
-      const ax2 = 210 + 10 * 18;
-      const ay2 = 210 - slope * 10 * 18;
-      lines += `<line x1="${ax1}" y1="${ay1}" x2="${ax2}" y2="${ay2}" stroke="#059669" stroke-width="2.8" />`;
-
-      const px = 210 + x * 18;
-      const py = 210 - y * 18;
-      lines += `<circle cx="${px}" cy="${py}" r="7" fill="#f59e0b" />`;
-      lines += `<text x="${px}" y="${py - 12}" font-size="12" fill="#0f172a" font-weight="800" text-anchor="middle">🏃</text>`;
-      svg.innerHTML = lines;
-
-      state.slopeRaf = requestAnimationFrame(runSlope);
-    }
-
-    function setGameLevel() {
-      const choices = [
-        { x: 4, y: 3 },
-        { x: 2, y: 1 },
-        { x: 3, y: 2 },
-        { x: 5, y: -2 },
-        { x: 2, y: -1 },
-        { x: 6, y: 2 },
-        { x: 4, y: 1 },
-        { x: 3, y: -1 }
-      ];
-
-      const pick = choices[Math.floor(Math.random() * choices.length)];
-      state.target = pick;
-      state.targetReached = false;
-      $('game-feedback').className = 'mt-3 text-xs font-black text-slate-700 bg-white/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2';
-      $('feedback-text').textContent = `ターゲットは右に ${pick.x}、${pick.y >= 0 ? '上に' : '下に'} ${Math.abs(pick.y)} の位置です。スライダーを調整してね！`;
-      
-      // チェックボタンを表示
-      const checkBtn = $('check-answer-btn');
-      if (checkBtn) {
-        checkBtn.style.display = 'flex';
-      }
-      
-      drawGraph();
-    }
-
-    function checkGame() {
-      const slopeValue = getSlope();
-      const targetSlope = state.target.x === 0 ? 0 : state.target.y / state.target.x;
-      const same = Math.abs(slopeValue - targetSlope) < 0.0001;
-
-      if (same && !state.targetReached) {
-        celebrateCorrect();
-      }
-    }
-
-    function manualCheckGame() {
-      const slopeValue = getSlope();
-      const targetSlope = state.target.x === 0 ? 0 : state.target.y / state.target.x;
-      const same = Math.abs(slopeValue - targetSlope) < 0.0001;
-
-      if (same) {
-        celebrateCorrect();
-      } else {
-        showIncorrect();
-      }
-    }
-
-    function celebrateCorrect() {
-      if (state.targetReached) return; // 既に正解している場合はスキップ
-      
-      state.targetReached = true;
-      state.gameScore += 100;
-      $('score').textContent = String(state.gameScore);
-      $('game-feedback').className = 'mt-3 text-xs font-black text-emerald-900 bg-emerald-100 border border-emerald-300 rounded-xl p-3 flex items-center gap-2 flash-amber';
-      $('feedback-text').textContent = `🎉 正解！傾きが ${state.target.y}/${state.target.x} に一致しました！素晴らしい！`;
-      
-      const checkBtn = $('check-answer-btn');
-      if (checkBtn) {
-        checkBtn.style.display = 'none';
-      }
-    }
-
-    function showIncorrect() {
-      $('game-feedback').className = 'mt-3 text-xs font-black text-amber-900 bg-amber-100 border border-amber-300 rounded-xl p-3 flex items-center gap-2';
-      $('feedback-text').textContent = `もう少し！目標の星を通るように、${state.target.x} 右・${state.target.y} の比にしてね。`;
-    }
-
-    document.querySelectorAll('.tab-button').forEach(button => {
-      button.addEventListener('click', () => switchTab(button.dataset.tab));
-    });
-
-    bindControls();
-    updateFormula();
-    drawGraph();
+    slider.addEventListener('input', updateVisuals);
+    updateVisuals();
   </script>
 </body>
 </html>
