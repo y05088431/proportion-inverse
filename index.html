@@ -390,14 +390,14 @@
             if (texEqElem && window.katex) {
                 const absNum = Math.abs(num);
                 const signStr = num < 0 ? '-' : '';
-                const texString = `y = ${signStr}\frac{\color{#DC2626}{${absNum}}}{\color{#2563EB}{${den}}} x`;
+                const texString = String.raw`y = ${signStr}\frac{\color{#DC2626}{${absNum}}}{\color{#2563EB}{${den}}} x`;
                 katex.render(texString, texEqElem, { throwOnError: false });
             }
 
             const bottomHintElem = document.getElementById('bottom-hint-text');
             if (bottomHintElem && window.katex) {
                 const formulaTex = katex.renderToString('y = ax', { throwOnError: false });
-                const slopeTex = katex.renderToString('a = \\frac{\\text{分子}}{\\text{分母}}', { throwOnError: false });
+                const slopeTex = katex.renderToString(String.raw`a = \frac{\text{分子}}{\text{分母}}`, { throwOnError: false });
                 bottomHintElem.innerHTML = `<strong>ポイント：</strong> 比例のグラフ ${formulaTex} の傾き ${slopeTex} は「分母進んで分子進む」ルール。分母が大きいほど傾きはゆるやかに、分子が大きいほど急になります。`;
             }
 
@@ -797,7 +797,7 @@
 
                 const absNum = Math.abs(state.num);
                 const signStr = state.num < 0 ? '-' : '';
-                const fracTex = window.katex ? katex.renderToString(`a = ${signStr}\\frac{${absNum}}{${state.den}}`, { throwOnError: false }) : `a = ${state.num}/${state.den}`;
+                const fracTex = window.katex ? katex.renderToString(String.raw`a = ${signStr}\frac{${absNum}}{${state.den}}`, { throwOnError: false }) : `a = ${state.num}/${state.den}`;
 
                 gameFeedback.className = 'text-xs font-bold text-emerald-900 bg-emerald-100 p-3 rounded-xl border border-emerald-300 flex items-center gap-2.5 animate-bounce-custom';
                 gameFeedback.innerHTML = `
