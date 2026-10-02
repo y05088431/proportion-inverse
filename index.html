@@ -126,6 +126,30 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.04); }
     }
+
+    .check-btn {
+      background: #10b981;
+      color: white;
+      font-weight: 800;
+      border-radius: 0.75rem;
+      padding: 0.375rem 1rem;
+      font-size: 0.75rem;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
+      cursor: pointer;
+      transition: background 0.2s;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .check-btn:hover {
+      background: #059669;
+    }
+
+    .check-btn:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800">
@@ -165,7 +189,7 @@
           <div class="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400 mb-2">現在の比例定数 a（傾き）</div>
 
           <div class="flex items-center justify-center gap-4 min-h-[72px]">
-            <div id="formula-render" class="text-2xl font-black text-slate-800"></div>
+            <div id="formula-render" class="text-2xl font-black text-slate-800">a = 3/4</div>
             <div class="text-slate-300 text-2xl">=</div>
             <div class="text-left">
               <div class="text-[10px] uppercase tracking-[0.12em] text-slate-400 font-black">小数</div>
@@ -334,7 +358,11 @@
 
       <div id="game-feedback" class="mt-3 text-xs font-black text-slate-700 bg-white/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
         <i class="fa-solid fa-crosshairs text-amber-500"></i>
-        <span>スライダーを動かして、緑の線がターゲットの星に重なるように調整してね！</span>
+        <span id="feedback-text">スライダーを動かして、緑の線がターゲットの星に重なるように調整してね！</span>
+        <button id="check-answer-btn" type="button" class="check-btn" style="margin-left: auto;">
+          <i class="fa-solid fa-check"></i>
+          <span>チェック</span>
+        </button>
       </div>
     </div>
   </main>
@@ -382,12 +410,18 @@
       const value = getSlope();
       const absNum = Math.abs(state.num);
 
+      // 小数表示
       $('dec-value').textContent = value.toFixed(2);
+
+      // スライダーの値表示
       $('den-value').textContent = String(state.den);
       $('num-value').textContent = signedNumber(state.num);
+
+      // 説明文の数値更新
       $('msg-dx').textContent = String(state.den);
       $('msg-dy').textContent = String(absNum);
 
+      // 分数の表示更新 - HTMLではなくテキストベースで確実に更新
       $('formula-render').innerHTML = `
         <div class="flex items-center gap-2 text-slate-800">
           <span class="font-black">a</span>
@@ -396,6 +430,7 @@
         </div>
       `;
 
+      // 下の説明メッセージの更新
       if (state.num > 0) {
         $('slope-msg').innerHTML = `
           <i class="fa-solid fa-arrow-trend-up text-emerald-500 text-base"></i>
@@ -413,6 +448,7 @@
         `;
       }
 
+      // 統計情報の更新
       const angle = Math.atan(value) * 180 / Math.PI;
       $('stat-angle').textContent = `${Math.abs(angle).toFixed(1)}°`;
 
@@ -434,7 +470,11 @@
       $('stat-dir').textContent = value > 0 ? '右上がり' : value < 0 ? '右下がり' : '水平';
       $('hint-text').innerHTML = '分母が大きいと傾きはゆるやかです。分子が大きいと、<strong>右に進んだときに上がる量が大きく</strong>なります。';
 
-      if (state.currentTab === 'game') checkGame();
+      // ゲームモードで自動判定
+      if (state.currentTab === 'game') {
+        checkGame();
+      }
+      
       drawGraph();
     }
 
@@ -522,25 +562,41 @@
     }
 
     function bindControls() {
-      $('input-numerator').addEventListener('input', (e) => {
+      // スライダー - input イベントで即座に更新
+      $('input-numerator').addEventListener('input', function(e) {
         state.num = Number(e.target.value);
         updateFormula();
       });
 
-      $('input-denominator').addEventListener('input', (e) => {
+      $('input-denominator').addEventListener('input', function(e) {
         state.den = Number(e.target.value) || 1;
         updateFormula();
       });
 
+      // プリセットボタン
       document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           setFraction(btn.dataset.num, btn.dataset.den);
         });
       });
 
+      // 次の問題ボタン
       $('next-problem').addEventListener('click', setGameLevel);
+
+      // チェックボタン（ゲームモード用）
+      $('check-answer-btn').addEventListener('click', manualCheckGame);
+
+      // ステップボタン
       $('step-btn').addEventListener('click', playStepAnimation);
+
+      // リセットボタン
       $('reset-btn').addEventListener('click', resetToDefaults);
+
+      // チェックボタンの表示/非表示制御
+      const checkBtn = $('check-answer-btn');
+      if (checkBtn) {
+        checkBtn.style.display = 'none';
+      }
     }
 
     function drawGraph() {
@@ -782,7 +838,14 @@
       state.target = pick;
       state.targetReached = false;
       $('game-feedback').className = 'mt-3 text-xs font-black text-slate-700 bg-white/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2';
-      $('game-feedback').innerHTML = `<i class="fa-solid fa-crosshairs text-amber-500"></i><span>ターゲットは右に ${pick.x}、${pick.y >= 0 ? '上に' : '下に'} ${Math.abs(pick.y)} の位置です。スライダーを調整してね！</span>`;
+      $('feedback-text').textContent = `ターゲットは右に ${pick.x}、${pick.y >= 0 ? '上に' : '下に'} ${Math.abs(pick.y)} の位置です。スライダーを調整してね！`;
+      
+      // チェックボタンを表示
+      const checkBtn = $('check-answer-btn');
+      if (checkBtn) {
+        checkBtn.style.display = 'flex';
+      }
+      
       drawGraph();
     }
 
@@ -792,16 +855,40 @@
       const same = Math.abs(slopeValue - targetSlope) < 0.0001;
 
       if (same && !state.targetReached) {
-        state.targetReached = true;
-        state.gameScore += 100;
-        $('score').textContent = String(state.gameScore);
-        $('game-feedback').className = 'mt-3 text-xs font-black text-emerald-900 bg-emerald-100 border border-emerald-300 rounded-xl p-3 flex items-center gap-2 flash-amber';
-        $('game-feedback').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i><span>正解！傾きが ${state.target.y}/${state.target.x} に一致しました。</span>`;
-      } else if (!same) {
-        state.targetReached = false;
-        $('game-feedback').className = 'mt-3 text-xs font-black text-slate-700 bg-white/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2';
-        $('game-feedback').innerHTML = `<i class="fa-solid fa-crosshairs text-amber-500"></i><span>まだ違うよ。目標の星を通るように、${state.target.x} 右・${state.target.y} の比にしてね。</span>`;
+        celebrateCorrect();
       }
+    }
+
+    function manualCheckGame() {
+      const slopeValue = getSlope();
+      const targetSlope = state.target.x === 0 ? 0 : state.target.y / state.target.x;
+      const same = Math.abs(slopeValue - targetSlope) < 0.0001;
+
+      if (same) {
+        celebrateCorrect();
+      } else {
+        showIncorrect();
+      }
+    }
+
+    function celebrateCorrect() {
+      if (state.targetReached) return; // 既に正解している場合はスキップ
+      
+      state.targetReached = true;
+      state.gameScore += 100;
+      $('score').textContent = String(state.gameScore);
+      $('game-feedback').className = 'mt-3 text-xs font-black text-emerald-900 bg-emerald-100 border border-emerald-300 rounded-xl p-3 flex items-center gap-2 flash-amber';
+      $('feedback-text').textContent = `🎉 正解！傾きが ${state.target.y}/${state.target.x} に一致しました！素晴らしい！`;
+      
+      const checkBtn = $('check-answer-btn');
+      if (checkBtn) {
+        checkBtn.style.display = 'none';
+      }
+    }
+
+    function showIncorrect() {
+      $('game-feedback').className = 'mt-3 text-xs font-black text-amber-900 bg-amber-100 border border-amber-300 rounded-xl p-3 flex items-center gap-2';
+      $('feedback-text').textContent = `もう少し！目標の星を通るように、${state.target.x} 右・${state.target.y} の比にしてね。`;
     }
 
     document.querySelectorAll('.tab-button').forEach(button => {
