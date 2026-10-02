@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立体の展開図組み立てアニメーション</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Three.js & OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- MathJax for TeX formulas -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script type="text/javascript" id="mathjax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 440px;
+        }
+        canvas {
+            touch-action: none;
+            outline: none;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .active-shape-btn {
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            border-color: #2dd4bf;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-teal-500 selection:text-white">
+
+    <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-30 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-teal-500 to-emerald-400 p-2.5 rounded-xl shadow-lg shadow-teal-500/20 text-slate-900 font-black">
+                    <i class="fa-solid fa-cube text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        立体の展開図組み立てアニメーション
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">3D Simulator</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">多面体・角柱・角錐・円錐・球の展開図が折りたたまれて3D立体になる過程をビジュアル体験</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button id="reset-view-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2 rounded-lg transition border border-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-to-eye"></i>
+                    <span class="hidden sm:inline">視点をリセット</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex-grow w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <div class="lg:col-span-7 flex flex-col space-y-4">
+                <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col flex-grow shadow-2xl relative overflow-hidden border border-slate-800">
+                    
+                    <div class="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-800/80">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                            <h2 id="current-shape-title" class="font-bold text-base sm:text-lg text-white">正四面体</h2>
+                        </div>
+                        <div class="flex items-center space-x-3 text-xs text-slate-400">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-hand-pointer text-teal-400"></i> ドラッグ: 回転</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-magnifying-glass text-teal-400"></i> ホイール: ズーム</span>
+                        </div>
+                    </div>
+
+                    <div class="canvas-container bg-slate-950/80 rounded-xl overflow-hidden border border-slate-800/80 flex-grow shadow-inner">
+                        <div id="canvas-holder" class="w-full h-full"></div>
+                        
+                        <div class="absolute bottom-3 right-3 flex items-center space-x-1.5 bg-slate-900/80 p-1.5 rounded-lg border border-slate-700/60 backdrop-blur-md">
+                            <button id="toggle-wireframe-btn" class="px-2.5 py-1.5 text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition flex items-center gap-1">
+                                <i class="fa-solid fa-border-all text-teal-400"></i> ワイヤーフレーム
+                            </button>
+                            <button id="toggle-transparent-btn" class="px-2.5 py-1.5 text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition flex items-center gap-1">
+                                <i class="fa-solid fa-ghost text-teal-400"></i> 半透明
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+                        <div class="flex items-center justify-between text-xs sm:text-sm">
+                            <div class="flex items-center space-x-2 font-bold text-slate-200">
+                                <i class="fa-solid fa-folder-open text-teal-400"></i>
+                                <span>組み立て状態</span>
+                            </div>
+                            <span id="fold-percentage" class="font-mono font-bold text-teal-400 text-base bg-teal-950/60 border border-teal-800/50 px-2.5 py-0.5 rounded">
+                                0% (展開図)
+                            </span>
+                        </div>
+
+                        <div class="relative flex items-center">
+                            <input type="range" id="fold-slider" min="0" max="100" value="0" step="0.5"
+                                class="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50">
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <div class="flex items-center space-x-2">
+                                <button id="play-pause-btn" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-teal-600/20">
+                                    <i id="play-icon" class="fa-solid fa-play"></i>
+                                    <span id="play-text">自動再生</span>
+                                </button>
+                                <button id="unfold-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                    展開 (0%)
+                                </button>
+                                <button id="fold-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                    完成 (100%)
+                                </button>
+                            </div>
+
+                            <div class="flex items-center space-x-1.5 text-xs text-slate-400">
+                                <span>速度:</span>
+                                <select id="speed-select" class="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-teal-500">
+                                    <option value="0.5">0.5x</option>
+                                    <option value="1" selected>1.0x</option>
+                                    <option value="1.5">1.5x</option>
+                                    <option value="2">2.0x</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 flex flex-col space-y-5">
+                <div class="glass-panel rounded-2xl p-5 space-y-3 border border-slate-800">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <i class="fa-solid fa-shapes text-teal-400"></i> 立体を選択する
+                    </h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="shape-buttons-grid">
+                        <!-- Dynamic Buttons inserted via JS -->
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-5 space-y-4 border border-slate-800">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <i class="fa-solid fa-square-root-variable text-amber-400"></i> 立体の性質と数学的特徴
+                    </h3>
+
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-xl">
+                            <span class="text-xs text-slate-400 block">頂点の数 ($V$)</span>
+                            <span id="prop-v" class="text-lg font-mono font-bold text-teal-300">4</span>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-xl">
+                            <span class="text-xs text-slate-400 block">辺の数 ($E$)</span>
+                            <span id="prop-e" class="text-lg font-mono font-bold text-teal-300">6</span>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-xl">
+                            <span class="text-xs text-slate-400 block">面の数 ($F$)</span>
+                            <span id="prop-f" class="text-lg font-mono font-bold text-teal-300">4</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-teal-950/40 to-slate-900 border border-teal-800/40 p-3 rounded-xl text-xs space-y-1">
+                        <div class="flex items-center justify-between font-bold text-teal-200">
+                            <span>オイラーの多面体定理:</span>
+                            <span id="euler-calc-tex" class="font-mono text-amber-300">$V - E + F = 2$</span>
+                        </div>
+                        <p id="euler-explanation" class="text-slate-400 text-xs">
+                            穴の開いていない全ての凸多面体において、$V - E + F = 2$ が常に成り立ちます。
+                        </p>
+                    </div>
+
+                    <div id="shape-description" class="text-xs sm:text-sm text-slate-300 leading-relaxed bg-slate-900/50 p-3.5 rounded-xl border border-slate-800/80">
+                        <!-- Dynamic Description -->
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-4 text-xs space-y-2 border border-slate-800 text-slate-400">
+                    <div class="font-bold text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-amber-400"></i> 学習のワンポイント
+                    </div>
+                    <p class="leading-relaxed">
+                        展開図を折るときの「折り目の線（ヒンジ軸）」と「隣り合う面の接続関係」に注目しましょう。多面体だけでなく円錐や球などの曲面立体の展開図の成り立ちも体験できます。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900/80 border-t border-slate-800 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+            立体の展開図組み立てアニメーション 3D | 中学校数学「空間図形」・多面体・曲面体の性質対応
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const COLORS = [
+                0x0d9488, 0x3b82f6, 0x8b5cf6, 0xec4899, 
+                0xf59e0b, 0x10b981, 0x6366f1, 0xf97316, 
+                0x06b6d4, 0x84cc16, 0xd946ef, 0x64748b
+            ];
+
+            function createRegularPolygonShape(N, side) {
+                const shape = new THREE.Shape();
+                const gamma = (2 * Math.PI) / N;
+                let x = 0, y = 0, angle = 0;
+
+                const verts = [{ x: 0, y: 0 }];
+                shape.moveTo(0, 0);
+
+                for (let i = 0; i < N; i++) {
+                    x += side * Math.cos(angle);
+                    y += side * Math.sin(angle);
+                    shape.lineTo(x, y);
+                    if (i < N - 1) {
+                        verts.push({ x, y });
+                        angle += gamma;
+                    }
+                }
+                shape.closePath();
+                return { shape, verts };
+            }
+
+            function buildNetNode(spec, faceCounter, styleOpts) {
+                const group = new THREE.Group();
+                const updateFns = [];
+
+                let geomData;
+                if (spec.customShapeData) {
+                    geomData = spec.customShapeData;
+                } else {
+                    geomData = createRegularPolygonShape(spec.N, spec.side);
+                }
+
+                const geometry = new THREE.ShapeGeometry(geomData.shape);
+                const colorHex = COLORS[faceCounter.count % COLORS.length];
+                faceCounter.count++;
+
+                const material = new THREE.MeshStandardMaterial({
+                    color: colorHex,
+                    side: THREE.DoubleSide,
+                    roughness: 0.35,
+                    metalness: 0.1,
+                    wireframe: styleOpts.isWireframe,
+                    transparent: styleOpts.isTransparent,
+                    opacity: styleOpts.isTransparent ? 0.55 : 1.0,
+                    polygonOffset: true,
+                    polygonOffsetFactor: 1,
+                    polygonOffsetUnits: 1
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                const edgesGeo = new THREE.EdgesGeometry(geometry);
+                const edgesMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+                const line = new THREE.LineSegments(edgesGeo, edgesMat);
+                mesh.add(line);
+
+                group.add(mesh);
+
+                if (spec.children && spec.children.length > 0) {
+                    const verts = geomData.verts;
+                    const numVerts = verts.length;
+
+                    spec.children.forEach(childSpec => {
+                        const edgeIdx = childSpec.edge;
+                        const vCurr = verts[edgeIdx];
+                        const vNext = verts[(edgeIdx + 1) % numVerts];
+
+                        const hingePos = vNext;
+                        const dx = vCurr.x - vNext.x;
+                        const dy = vCurr.y - vNext.y;
+                        const thetaHinge = Math.atan2(dy, dx);
+
+                        // ヒンジ用のグループを配置（親の辺に合わせる）
+                        const hingeGroup = new THREE.Group();
+                        hingeGroup.position.set(hingePos.x, hingePos.y, 0);
+                        hingeGroup.rotation.z = thetaHinge;
+                        group.add(hingeGroup);
+
+                        // 折りたたみ用のグループを追加（X軸回転で綺麗に立ち上がる）
+                        const foldGroup = new THREE.Group();
+                        hingeGroup.add(foldGroup);
+
+                        const childResult = buildNetNode(childSpec.node, faceCounter, styleOpts);
+                        foldGroup.add(childResult.group);
+
+                        const foldAngle = childSpec.foldAngle;
+                        updateFns.push((prog) => {
+                            foldGroup.rotation.x = foldAngle * prog;
+                            childResult.update(prog);
+                        });
+                    });
+                }
+
+                return {
+                    group,
+                    update: (prog) => updateFns.forEach(fn => fn(prog))
+                };
+            }
+
+            function buildConeMesh(styleOpts) {
+                const group = new THREE.Group();
+                const R = 3.0; // Slant height
+                const r = 1.2; // Base circle radius
+                const theta = (2 * Math.PI * r) / R; // Sector angle
+
+                const segU = 24; 
+                const segV = 48;
+
+                const sectorGeom = new THREE.BufferGeometry();
+                const vertCount = (segU + 1) * (segV + 1);
+                const positions = new Float32Array(vertCount * 3);
+                const uvs = new Float32Array(vertCount * 2);
+                const indices = [];
+
+                for (let i = 0; i <= segU; i++) {
+                    for (let j = 0; j <= segV; j++) {
+                        const idx = i * (segV + 1) + j;
+                        uvs[idx * 2] = j / segV;
+                        uvs[idx * 2 + 1] = i / segU;
+                    }
+                }
+
+                for (let i = 0; i < segU; i++) {
+                    for (let j = 0; j < segV; j++) {
+                        const a = i * (segV + 1) + j;
+                        const b = (i + 1) * (segV + 1) + j;
+                        const c = (i + 1) * (segV + 1) + (j + 1);
+                        const d = i * (segV + 1) + (j + 1);
+                        indices.push(a, b, d);
+                        indices.push(b, c, d);
+                    }
+                }
+
+                sectorGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                sectorGeom.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                sectorGeom.setIndex(indices);
+
+                const sectorMat = new THREE.MeshStandardMaterial({
+                    color: 0x0d9488, side: THREE.DoubleSide, roughness: 0.35,
+                    wireframe: styleOpts.isWireframe, transparent: styleOpts.isTransparent,
+                    opacity: styleOpts.isTransparent ? 0.55 : 1.0,
+                    polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+                });
+                const sectorMesh = new THREE.Mesh(sectorGeom, sectorMat);
+                group.add(sectorMesh);
+
+                const wireGeom = new THREE.WireframeGeometry(sectorGeom);
+                const wireMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1 });
+                const wireLine = new THREE.LineSegments(wireGeom, wireMat);
+                sectorMesh.add(wireLine);
+
+                const baseGeom = new THREE.CircleGeometry(r, 48);
+                const baseMat = new THREE.MeshStandardMaterial({
+                    color: 0x3b82f6, side: THREE.DoubleSide, roughness: 0.35,
+                    wireframe: styleOpts.isWireframe, transparent: styleOpts.isTransparent,
+                    opacity: styleOpts.isTransparent ? 0.55 : 1.0,
+                    polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+                });
+                const baseMesh = new THREE.Mesh(baseGeom, baseMat);
+                const baseWire = new THREE.LineSegments(new THREE.EdgesGeometry(baseGeom), new THREE.LineBasicMaterial({ color: 0xffffff }));
+                baseMesh.add(baseWire);
+                group.add(baseMesh);
+
+                function updateCone(prog) {
+                    const t = prog;
+                    // 円錐の側面が丸まる度合いの計算
+                    const rt = (1 - t) * R + t * r; 
+                    const ht = Math.sqrt(Math.max(0, R * R - rt * rt));
+                    const theta_t = (R * theta) / rt;
+                    
+                    const H = Math.sqrt(Math.max(0, R * R - r * r));
+                    
+                    // 頂点のグローバル回転角（接点を軸にして立ち上がる）
+                    const max_angle = Math.atan2(H, r);
+                    const current_angle = t * max_angle;
+
+                    // 世界空間での頂点(Apex)の座標
+                    const apex_y = R * Math.sin(current_angle);
+                    const apex_z = -r + R * Math.cos(current_angle);
+
+                    // オイラー角による姿勢補正（ローカルのジェネレーター線を世界のジェネレーター線に合わせる）
+                    const local_angle = Math.atan2(-rt, -ht);
+                    const world_angle = Math.atan2(-R * Math.cos(current_angle), -R * Math.sin(current_angle));
+                    const rot_x = world_angle - local_angle;
+
+                    const posAttr = sectorGeom.attributes.position;
+                    let idx = 0;
+                    for (let i = 0; i <= segU; i++) {
+                        const u = i / segU; // Apex(0) -> Rim(1)
+                        for (let j = 0; j <= segV; j++) {
+                            const v = j / segV;
+                            const phi = (v - 0.5) * theta_t;
+
+                            const xl = u * rt * Math.sin(phi);
+                            const yl = -u * ht;
+                            const zl = -u * rt * Math.cos(phi);
+
+                            const y_rot = yl * Math.cos(rot_x) - zl * Math.sin(rot_x);
+                            const z_rot = yl * Math.sin(rot_x) + zl * Math.cos(rot_x);
+
+                            const x = xl;
+                            const y = y_rot + apex_y;
+                            const z = z_rot + apex_z;
+
+                            posAttr.setXYZ(idx++, x, y, z);
+                        }
+                    }
+                    posAttr.needsUpdate = true;
+                    sectorGeom.computeVertexNormals();
+                    wireGeom.copy(new THREE.WireframeGeometry(sectorGeom));
+
+                    // 底面の円は完全に地面に固定
+                    baseMesh.position.set(0, 0, 0);
+                    baseMesh.rotation.x = -Math.PI / 2;
+                }
+
+                return { group, update: updateCone };
+            }
+
+            function buildSphereMesh(styleOpts) {
+                const group = new THREE.Group();
+                const N = 12; 
+                const R = 2.2;
+                const segLat = 24;
+                const segLon = 6;
+
+                const goreGroup = new THREE.Group();
+                group.add(goreGroup);
+
+                const gores = [];
+
+                for (let k = 0; k < N; k++) {
+                    const geom = new THREE.BufferGeometry();
+                    const vertCount = (segLat + 1) * (segLon + 1);
+                    const positions = new Float32Array(vertCount * 3);
+                    const uvs = new Float32Array(vertCount * 2);
+                    const indices = [];
+
+                    for (let i = 0; i <= segLat; i++) {
+                        for (let j = 0; j <= segLon; j++) {
+                            const idx = i * (segLon + 1) + j;
+                            uvs[idx * 2] = j / segLon;
+                            uvs[idx * 2 + 1] = i / segLat;
+                        }
+                    }
+
+                    for (let i = 0; i < segLat; i++) {
+                        for (let j = 0; j < segLon; j++) {
+                            const a = i * (segLon + 1) + j;
+                            const b = (i + 1) * (segLon + 1) + j;
+                            const c = (i + 1) * (segLon + 1) + (j + 1);
+                            const d = i * (segLon + 1) + (j + 1);
+                            indices.push(a, b, d);
+                            indices.push(b, c, d);
+                        }
+                    }
+
+                    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    geom.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                    geom.setIndex(indices);
+
+                    const colorHex = COLORS[k % COLORS.length];
+                    const mat = new THREE.MeshStandardMaterial({
+                        color: colorHex, side: THREE.DoubleSide, roughness: 0.35,
+                        wireframe: styleOpts.isWireframe, transparent: styleOpts.isTransparent,
+                        opacity: styleOpts.isTransparent ? 0.55 : 1.0,
+                        polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+                    });
+
+                    const mesh = new THREE.Mesh(geom, mat);
+                    const wire = new THREE.LineSegments(new THREE.WireframeGeometry(geom), new THREE.LineBasicMaterial({ color: 0xffffff }));
+                    mesh.add(wire);
+                    goreGroup.add(mesh);
+
+                    gores.push({ geom, wire, k });
+                }
+
+                function updateSphere(prog) {
+                    const t = Math.max(prog, 0.0001);
+                    const lift = Math.sin(t * Math.PI) * R * 0.4;
+                    const max_width = (2 * Math.PI * R) / N;
+
+                    gores.forEach(({ geom, wire, k }) => {
+                        const posAttr = geom.attributes.position;
+                        let idx = 0;
+
+                        let lonCenter = (k / N) * 2 * Math.PI;
+                        if (lonCenter > Math.PI) lonCenter -= 2 * Math.PI;
+
+                        for (let i = 0; i <= segLat; i++) {
+                            const vLat = (i / segLat - 0.5) * Math.PI; // -PI/2 to PI/2
+                            const y_flat = vLat * R;
+                            
+                            const lat_angle = vLat * t;
+                            const r_lat = R * Math.cos(lat_angle);
+                            const y_3d = R * Math.sin(lat_angle);
+
+                            for (let j = 0; j <= segLon; j++) {
+                                const uWidth = j / segLon - 0.5; // -0.5 to 0.5
+                                const width_at_lat = max_width * Math.cos(vLat);
+                                const x_flat = lonCenter * R + uWidth * width_at_lat;
+
+                                const current_rho = R / t;
+                                const r_eff = (1 - t) * current_rho + t * r_lat;
+                                const wrap_angle = (x_flat / R) * t;
+
+                                const x = r_eff * Math.sin(wrap_angle);
+                                const y = (1 - t) * y_flat + t * y_3d + lift;
+                                const z = r_eff * Math.cos(wrap_angle) - current_rho + R * t;
+
+                                posAttr.setXYZ(idx++, x, y, z);
+                            }
+                        }
+                        posAttr.needsUpdate = true;
+                        geom.computeVertexNormals();
+                    });
+                }
+
+                return { group, update: updateSphere };
+            }
+
+            const SHAPES = {
+                tetrahedron: {
+                    name: '正四面体',
+                    icon: 'fa-play',
+                    vertices: 4, edges: 6, faces: 4,
+                    eulerTex: '$4 - 6 + 4 = 2$',
+                    desc: '4つの面がすべて合同な正三角形で構成される正多面体です。底面正三角形の3つの辺に残り3つの側面が接続され、二面角（約70.53°）で折れ曲がって完成します。',
+                    createSpec: () => {
+                        const s = 2.4;
+                        const foldA = Math.PI - Math.acos(1/3);
+                        return {
+                            tree: {
+                                N: 3, side: s,
+                                children: [
+                                    { edge: 0, node: { N: 3, side: s }, foldAngle: foldA },
+                                    { edge: 1, node: { N: 3, side: s }, foldAngle: foldA },
+                                    { edge: 2, node: { N: 3, side: s }, foldAngle: foldA }
+                                ]
+                            }
+                        };
+                    }
+                },
+                cube: {
+                    name: '立方体（正六面体）',
+                    icon: 'fa-cube',
+                    vertices: 8, edges: 12, faces: 6,
+                    eulerTex: '$8 - 12 + 6 = 2$',
+                    desc: '全ての面が合同な正方形でできている正多面体です。完璧な十字型の展開図（ラテンクロス）から各面が直角（90°）に起き上がり、箱を形成します。',
+                    createSpec: () => {
+                        const s = 2.0;
+                        const foldA = Math.PI / 2;
+                        return {
+                            tree: {
+                                N: 4, side: s,
+                                children: [
+                                    { edge: 0, node: { N: 4, side: s }, foldAngle: foldA },
+                                    { edge: 1, node: { N: 4, side: s }, foldAngle: foldA },
+                                    { edge: 2, node: { 
+                                        N: 4, side: s,
+                                        children: [
+                                            { edge: 2, node: { N: 4, side: s }, foldAngle: foldA }
+                                        ]
+                                    }, foldAngle: foldA },
+                                    { edge: 3, node: { N: 4, side: s }, foldAngle: foldA }
+                                ]
+                            }
+                        };
+                    }
+                },
+                octahedron: {
+                    name: '正八面体',
+                    icon: 'fa-diamond',
+                    vertices: 6, edges: 12, faces: 8,
+                    eulerTex: '$6 - 12 + 8 = 2$',
+                    desc: '8つの合同な正三角形からなる正多面体です。一直線の帯に4枚の三角形が連なり、片側の縁に交互に4つの蓋（ヒゲ）が接続された美しい展開図を採用しています。',
+                    createSpec: () => {
+                        const s = 2.2;
+                        const foldA = Math.acos(1/3); // 180 - 109.47 = 70.53
+                        return {
+                            tree: {
+                                N: 3, side: s,
+                                children: [
+                                    { edge: 2, node: { N: 3, side: s }, foldAngle: foldA },
+                                    { edge: 1, node: { 
+                                        N: 3, side: s,
+                                        children: [
+                                            { edge: 2, node: { N: 3, side: s }, foldAngle: foldA },
+                                            { edge: 1, node: { 
+                                                N: 3, side: s,
+                                                children: [
+                                                    { edge: 2, node: { N: 3, side: s }, foldAngle: foldA },
+                                                    { edge: 1, node: { 
+                                                        N: 3, side: s,
+                                                        children: [
+                                                            { edge: 2, node: { N: 3, side: s }, foldAngle: foldA }
+                                                        ]
+                                                    }, foldAngle: foldA }
+                                                ]
+                                            }, foldAngle: foldA }
+                                        ]
+                                    }, foldAngle: foldA }
+                                ]
+                            }
+                        };
+                    }
+                },
+                dodecahedron: {
+                    name: '正十二面体',
+                    icon: 'fa-dharmachakra',
+                    vertices: 20, edges: 30, faces: 12,
+                    eulerTex: '$20 - 30 + 12 = 2$',
+                    desc: '12個の合同な正五角形で構成される正多面体です。2つの「花びら状の展開図」が一直線のダンベル構造で接続されており、平面状態での重なりを完全に防いでいます。',
+                    createSpec: () => {
+                        const s = 1.35;
+                        const foldA = Math.acos(1 / Math.sqrt(5)); // ~63.43 deg
+                        
+                        const flower1 = [
+                            { edge: 1, node: { N: 5, side: s }, foldAngle: foldA },
+                            { edge: 2, node: { N: 5, side: s }, foldAngle: foldA },
+                            { edge: 3, node: { N: 5, side: s }, foldAngle: foldA },
+                            { edge: 4, node: { N: 5, side: s }, foldAngle: foldA }
+                        ];
+                        
+                        const flower2Center = {
+                            N: 5, side: s,
+                            children: [
+                                { edge: 1, node: { N: 5, side: s }, foldAngle: foldA },
+                                { edge: 2, node: { N: 5, side: s }, foldAngle: foldA },
+                                { edge: 3, node: { N: 5, side: s }, foldAngle: foldA },
+                                { edge: 4, node: { N: 5, side: s }, foldAngle: foldA }
+                            ]
+                        };
+
+                        return {
+                            tree: {
+                                N: 5, side: s,
+                                children: [
+                                    ...flower1,
+                                    { edge: 0, node: { 
+                                        N: 5, side: s,
+                                        children: [
+                                            { edge: 3, node: flower2Center, foldAngle: foldA }
+                                        ]
+                                    }, foldAngle: foldA }
+                                ]
+                            }
+                        };
+                    }
+                },
+                icosahedron: {
+                    name: '正二十面体',
+                    icon: 'fa-circle-nodes',
+                    vertices: 12, edges: 30, faces: 20,
+                    eulerTex: '$12 - 30 + 20 = 2$',
+                    desc: '20個の合同な正三角形で構成される正多面体です。一直線の帯状に連なる10面の三角形と、上下のフタ（計10面）が二面角（約138.19°）で丸まるように組み上がります。',
+                    createSpec: () => {
+                        const s = 1.45;
+                        const foldA = Math.acos(Math.sqrt(5)/3);
+                        
+                        function makeChainNode(index) {
+                            if (index >= 10) return null;
+                            const nextEdge = (index % 2 === 0) ? 1 : 2;
+                            const capEdge = (index % 2 === 0) ? 2 : 1;
+                            
+                            const children = [];
+                            children.push({ edge: capEdge, node: { N: 3, side: s }, foldAngle: foldA });
+                            
+                            const nextNode = makeChainNode(index + 1);
+                            if (nextNode) {
+                                children.push({ edge: nextEdge, node: nextNode, foldAngle: foldA });
+                            }
+                            return { N: 3, side: s, children };
+                        }
+                        return { tree: makeChainNode(0) };
+                    }
+                },
+                cone: {
+                    name: '円錐',
+                    icon: 'fa-ice-cream',
+                    vertices: 1, edges: 1, faces: 2,
+                    eulerTex: '$1 - 1 + 2 = 2$',
+                    desc: '1つの扇形（側面）と1つの円（底面）からなる曲面立体です。底面の円のフチをヒンジ軸として、扇形が魔法のように丸まりながら立ち上がり、完璧なフタとして閉じます。',
+                    customMeshBuilder: buildConeMesh
+                },
+                sphere: {
+                    name: '球（舟形展開図）',
+                    icon: 'fa-globe',
+                    vertices: '―', edges: '―', faces: 12,
+                    eulerTex: '$\\chi = 2$',
+                    desc: '12等分の舟形展開図（Gore Net）を丸めて貼り合わせることで球体が完成します。空中にフワッと浮き上がりながら、一切の通り抜け（交差）なく滑らかに球状へ絞り込まれます。',
+                    customMeshBuilder: buildSphereMesh
+                },
+                squarePyramid: {
+                    name: '正四角錐',
+                    icon: 'fa-shapes',
+                    vertices: 5, edges: 8, faces: 5,
+                    eulerTex: '$5 - 8 + 5 = 2$',
+                    desc: '底面が正方形で、側面が4つの二等辺三角形で構成される角錐です。',
+                    createSpec: () => {
+                        const s = 2.2;
+                        const foldA = Math.PI - Math.acos(1 / Math.sqrt(3));
+                        return {
+                            tree: {
+                                N: 4, side: s,
+                                children: [
+                                    { edge: 0, node: { N: 3, side: s }, foldAngle: foldA },
+                                    { edge: 1, node: { N: 3, side: s }, foldAngle: foldA },
+                                    { edge: 2, node: { N: 3, side: s }, foldAngle: foldA },
+                                    { edge: 3, node: { N: 3, side: s }, foldAngle: foldA }
+                                ]
+                            }
+                        };
+                    }
+                },
+                triangularPrism: {
+                    name: '三角柱',
+                    icon: 'fa-draw-polygon',
+                    vertices: 6, edges: 9, faces: 5,
+                    eulerTex: '$6 - 9 + 5 = 2$',
+                    desc: '底面と上面が合同な正三角形で、側面が3つの長方形で構成される角柱です。',
+                    createSpec: () => {
+                        const w = 2.0;
+                        const h = 2.6;
+                        
+                        const rectShape = new THREE.Shape();
+                        rectShape.moveTo(0,0); rectShape.lineTo(w,0); rectShape.lineTo(w,h); rectShape.lineTo(0,h); rectShape.closePath();
+                        const rectVerts = [{x:0,y:0}, {x:w,y:0}, {x:w,y:h}, {x:0,y:h}];
+                        const rectData = { shape: rectShape, verts: rectVerts };
+
+                        const rectShapeSide = new THREE.Shape();
+                        rectShapeSide.moveTo(0,0); rectShapeSide.lineTo(h,0); rectShapeSide.lineTo(h,w); rectShapeSide.lineTo(0,w); rectShapeSide.closePath();
+                        const rectSideVerts = [{x:0,y:0}, {x:h,y:0}, {x:h,y:w}, {x:0,y:w}];
+                        const rectDataSide = { shape: rectShapeSide, verts: rectSideVerts };
+
+                        const foldRect = Math.PI * 2 / 3; 
+                        const foldLid = Math.PI / 2;
+
+                        return {
+                            tree: {
+                                customShapeData: rectData,
+                                children: [
+                                    { edge: 0, node: { N: 3, side: w }, foldAngle: foldLid },
+                                    { edge: 1, node: { customShapeData: rectDataSide }, foldAngle: foldRect },
+                                    { edge: 2, node: { N: 3, side: w }, foldAngle: foldLid },
+                                    { edge: 3, node: { customShapeData: rectDataSide }, foldAngle: foldRect }
+                                ]
+                            }
+                        };
+                    }
+                }
+            };
+
+            let currentShapeKey = 'tetrahedron';
+            let currentFoldable = null;
+            let isPlaying = false;
+            let foldProgress = 0.0;
+            let isWireframe = false;
+            let isTransparent = false;
+            let animSpeed = 1.0;
+
+            const container = document.getElementById('canvas-holder');
+            const foldSlider = document.getElementById('fold-slider');
+            const foldPercentage = document.getElementById('fold-percentage');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const playText = document.getElementById('play-text');
+            const unfoldBtn = document.getElementById('unfold-btn');
+            const foldBtn = document.getElementById('fold-btn');
+            const speedSelect = document.getElementById('speed-select');
+            const toggleWireframeBtn = document.getElementById('toggle-wireframe-btn');
+            const toggleTransparentBtn = document.getElementById('toggle-transparent-btn');
+            const resetViewBtn = document.getElementById('reset-view-btn');
+
+            let scene, camera, renderer, controls;
+
+            function initThree() {
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0b1329);
+
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+                camera.position.set(0, 7, 12);
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.shadowMap.enabled = true;
+                container.appendChild(renderer.domElement);
+
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.maxPolarAngle = Math.PI - 0.05;
+
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+                scene.add(ambientLight);
+
+                const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.85);
+                dirLight1.position.set(12, 20, 15);
+                scene.add(dirLight1);
+
+                const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.45);
+                dirLight2.position.set(-12, -10, -12);
+                scene.add(dirLight2);
+
+                const gridHelper = new THREE.GridHelper(24, 24, 0x334155, 0x1e293b);
+                gridHelper.position.y = -0.01;
+                scene.add(gridHelper);
+
+                window.addEventListener('resize', onWindowResize);
+                animateLoop();
+            }
+
+            function onWindowResize() {
+                if (!container) return;
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }
+
+            function loadShape(key) {
+                currentShapeKey = key;
+                const shapeData = SHAPES[key];
+                if (!shapeData) return;
+
+                if (currentFoldable && currentFoldable.rootGroup) {
+                    scene.remove(currentFoldable.rootGroup);
+                }
+
+                const styleOpts = { isWireframe, isTransparent };
+                const rootGroup = new THREE.Group();
+
+                if (shapeData.customMeshBuilder) {
+                    const customResult = shapeData.customMeshBuilder(styleOpts);
+                    rootGroup.add(customResult.group);
+                    scene.add(rootGroup);
+                    currentFoldable = {
+                        rootGroup,
+                        update: customResult.update
+                    };
+                } else {
+                    rootGroup.rotation.x = -Math.PI / 2;
+                    const spec = shapeData.createSpec();
+                    const faceCounter = { count: 0 };
+                    const foldableNode = buildNetNode(spec.tree, faceCounter, styleOpts);
+                    rootGroup.add(foldableNode.group);
+
+                    foldableNode.update(1.0);
+                    const box = new THREE.Box3().setFromObject(rootGroup);
+                    const center = new THREE.Vector3();
+                    box.getCenter(center);
+                    foldableNode.group.position.x -= center.x;
+                    foldableNode.group.position.y -= center.y;
+                    
+                    foldableNode.update(0.0);
+
+                    scene.add(rootGroup);
+                    currentFoldable = {
+                        rootGroup,
+                        update: foldableNode.update
+                    };
+                }
+
+                document.getElementById('current-shape-title').textContent = shapeData.name;
+                document.getElementById('prop-v').textContent = shapeData.vertices;
+                document.getElementById('prop-e').textContent = shapeData.edges;
+                document.getElementById('prop-f').textContent = shapeData.faces;
+                document.getElementById('euler-calc-tex').innerHTML = shapeData.eulerTex;
+                document.getElementById('shape-description').textContent = shapeData.desc;
+
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    window.MathJax.typesetPromise();
+                }
+
+                document.querySelectorAll('.shape-select-btn').forEach(btn => {
+                    if (btn.dataset.key === key) {
+                        btn.className = 'shape-select-btn active-shape-btn border font-bold p-2.5 rounded-xl text-xs flex flex-col items-center justify-center gap-1.5 transition';
+                    } else {
+                        btn.className = 'shape-select-btn bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 font-medium p-2.5 rounded-xl text-xs flex flex-col items-center justify-center gap-1.5 transition';
+                    }
+                });
+
+                applyFoldProgress();
+                applyStyleOptions();
+            }
+
+            function applyFoldProgress() {
+                if (currentFoldable && currentFoldable.update) {
+                    currentFoldable.update(foldProgress);
+                }
+                foldSlider.value = foldProgress * 100;
+                foldPercentage.textContent = `${Math.round(foldProgress * 100)}% ${foldProgress === 0 ? '(展開図)' : (foldProgress === 1 ? '(完成立体)' : '')}`;
+            }
+
+            function applyStyleOptions() {
+                if (!currentFoldable || !currentFoldable.rootGroup) return;
+                currentFoldable.rootGroup.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.wireframe = isWireframe;
+                        child.material.transparent = isTransparent;
+                        child.material.opacity = isTransparent ? 0.55 : 1.0;
+                        child.material.needsUpdate = true;
+                    }
+                });
+            }
+
+            function buildShapeButtons() {
+                const grid = document.getElementById('shape-buttons-grid');
+                grid.innerHTML = '';
+
+                Object.keys(SHAPES).forEach(key => {
+                    const item = SHAPES[key];
+                    const btn = document.createElement('button');
+                    btn.dataset.key = key;
+                    btn.className = 'shape-select-btn bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 font-medium p-2.5 rounded-xl text-xs flex flex-col items-center justify-center gap-1.5 transition';
+                    btn.innerHTML = `
+                        <i class="fa-solid ${item.icon} text-base text-teal-400"></i>
+                        <span>${item.name}</span>
+                    `;
+                    btn.addEventListener('click', () => {
+                        loadShape(key);
+                    });
+                    grid.appendChild(btn);
+                });
+            }
+
+            let lastTime = performance.now();
+            function animateLoop(now = performance.now()) {
+                requestAnimationFrame(animateLoop);
+
+                const delta = (now - lastTime) / 1000;
+                lastTime = now;
+
+                if (isPlaying) {
+                    foldProgress += delta * 0.35 * animSpeed;
+                    if (foldProgress > 1.0) {
+                        foldProgress = 1.0;
+                        isPlaying = false;
+                        updatePlayButtonUI();
+                    }
+                    applyFoldProgress();
+                }
+
+                if (controls) controls.update();
+                if (renderer && scene && camera) {
+                    renderer.render(scene, camera);
+                }
+            }
+
+            function updatePlayButtonUI() {
+                if (isPlaying) {
+                    playIcon.className = 'fa-solid fa-pause';
+                    playText.textContent = '一時停止';
+                    playPauseBtn.className = 'bg-amber-600 hover:bg-amber-500 text-white px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-amber-600/20';
+                } else {
+                    playIcon.className = 'fa-solid fa-play';
+                    playText.textContent = '自動再生';
+                    playPauseBtn.className = 'bg-teal-600 hover:bg-teal-500 text-white px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-teal-600/20';
+                }
+            }
+
+            foldSlider.addEventListener('input', (e) => {
+                foldProgress = parseFloat(e.target.value) / 100;
+                isPlaying = false;
+                updatePlayButtonUI();
+                applyFoldProgress();
+            });
+
+            playPauseBtn.addEventListener('click', () => {
+                if (foldProgress >= 1.0) foldProgress = 0.0;
+                isPlaying = !isPlaying;
+                updatePlayButtonUI();
+            });
+
+            unfoldBtn.addEventListener('click', () => {
+                foldProgress = 0.0;
+                isPlaying = false;
+                updatePlayButtonUI();
+                applyFoldProgress();
+            });
+
+            foldBtn.addEventListener('click', () => {
+                foldProgress = 1.0;
+                isPlaying = false;
+                updatePlayButtonUI();
+                applyFoldProgress();
+            });
+
+            speedSelect.addEventListener('change', (e) => {
+                animSpeed = parseFloat(e.target.value);
+            });
+
+            toggleWireframeBtn.addEventListener('click', () => {
+                isWireframe = !isWireframe;
+                toggleWireframeBtn.classList.toggle('text-teal-400', isWireframe);
+                applyStyleOptions();
+            });
+
+            toggleTransparentBtn.addEventListener('click', () => {
+                isTransparent = !isTransparent;
+                toggleTransparentBtn.classList.toggle('text-teal-400', isTransparent);
+                applyStyleOptions();
+            });
+
+            resetViewBtn.addEventListener('click', () => {
+                camera.position.set(0, 7, 12);
+                controls.target.set(0, 0, 0);
+                controls.update();
+            });
+
+            buildShapeButtons();
+            initThree();
+            loadShape('tetrahedron');
+        });
+    </script>
+</body>
+</html>
