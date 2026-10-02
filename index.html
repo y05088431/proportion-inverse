@@ -1,319 +1,981 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>分数の比例定数とグラフの傾き</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --panel: #ffffff;
-      --line: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --blue: #2563eb;
-      --red: #dc2626;
-      --green: #059669;
-      --amber: #f59e0b;
-      --purple: #7c3aed;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直感でわかる！分数の比例定数とグラフの傾き</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX (TeX数式レンダリング) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'M PLUS Rounded 1c', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      touch-action: manipulation;
-    }
-
-    .fraction {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-width: 3.5rem;
-      line-height: 1;
-    }
-
-    .fraction .num,
-    .fraction .den {
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .fraction .bar {
-      width: 100%;
-      height: 2px;
-      background: rgba(100, 116, 139, 0.7);
-      margin: 0.18rem 0;
-      border-radius: 9999px;
-    }
-
-    .fraction .num { color: var(--red); }
-    .fraction .den { color: var(--blue); }
-
-    .formula-box {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(59, 130, 246, 0.04));
-      border: 1px solid rgba(148, 163, 184, 0.25);
-    }
-
-    .tab-button.active {
-      background: white;
-      color: #4f46e5;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-    }
-
-    .tab-button {
-      color: #475569;
-    }
-
-    .grid-cell {
-      border: 1px solid #e2e8f0;
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
-    }
-
-    .range {
-      accent-color: #4f46e5;
-    }
-
-    .pill {
-      border-radius: 9999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: white;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-    }
-
-    .status-dot {
-      width: 0.7rem;
-      height: 0.7rem;
-      border-radius: 9999px;
-      display: inline-block;
-      margin-right: 0.5rem;
-    }
-
-    .shadow-soft {
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-    }
-
-    .graph-wrap {
-      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-    }
-  </style>
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            touch-action: manipulation;
+        }
+        @keyframes pulse-bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.08); }
+        }
+        .animate-bounce-custom {
+            animation: pulse-bounce 1.5s infinite ease-in-out;
+        }
+        @keyframes dust-puff {
+            0% { transform: scale(0.3) translate(0, 0); opacity: 0.8; }
+            100% { transform: scale(1.2) translate(-0.8px, -0.4px); opacity: 0; }
+        }
+        .dust-particle {
+            animation: dust-puff 0.5s infinite linear;
+        }
+    </style>
 </head>
-<body class="min-h-screen text-slate-800">
-  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-      <div class="space-y-6">
-        <div class="formula-box shadow-soft rounded-3xl p-5 sm:p-6">
-          <div class="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">比例定数</p>
-              <h1 class="mt-2 text-2xl font-extrabold text-slate-800">分数の比例定数とグラフの傾き</h1>
-            </div>
-            <div class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1.5 text-sm font-bold text-indigo-600">
-              <span class="status-dot bg-emerald-500"></span>
-              連動中
-            </div>
-          </div>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-700">
 
-          <div class="mt-6 grid gap-5 md:grid-cols-[auto_1fr] md:items-center">
-            <div class="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
-              <div class="fraction" aria-live="polite">
-                <div id="fractionNum" class="num text-3xl">3</div>
-                <div class="bar"></div>
-                <div id="fractionDen" class="den text-3xl">4</div>
-              </div>
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-indigo-200">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">
+                        分数の比例定数と傾きラボ
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium">「右に分母、上に分子」でグラフの傾きがスッキリ！</p>
+                </div>
             </div>
 
-            <div class="space-y-2">
-              <div class="flex items-center gap-3 text-sm text-slate-600">
-                <span class="pill px-3 py-1 text-slate-700">k = <span id="fractionText">3/4</span></span>
-                <span class="text-slate-500">小数</span>
-                <span class="pill px-3 py-1 text-indigo-700" id="decimalValue">0.75</span>
-              </div>
-
-              <p id="explanationText" class="text-lg font-bold text-slate-700 leading-relaxed">
-                右に4進むと、上に3上がります。
-              </p>
+            <!-- モード切り替えタブ -->
+            <div class="flex bg-slate-100 p-1 rounded-xl text-sm font-bold border border-slate-200">
+                <button id="tab-explore" onclick="switchTab('explore')" class="px-3.5 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 bg-white text-indigo-600 shadow-sm">
+                    <i class="fa-solid fa-compass"></i>
+                    <span>探索モード</span>
+                </button>
+                <button id="tab-slope" onclick="switchTab('slope')" class="px-3.5 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-person-hiking"></i>
+                    <span>坂道体感モード</span>
+                </button>
+                <button id="tab-game" onclick="switchTab('game')" class="px-3.5 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span>標的あてゲーム</span>
+                </button>
             </div>
-          </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full flex flex-col gap-6">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- コントロールパネル (左側) -->
+            <div class="lg:col-span-5 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-5">
+                
+                <!-- 数式・視覚表示ヘッダー -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 text-center relative overflow-hidden">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">現在の比例定数 <i class="font-serif italic">a</i>（傾き）</div>
+                    
+                    <div class="flex items-center justify-center gap-3 my-2 min-h-[52px]">
+                        <!-- TeXで描画される美しい数式 -->
+                        <div id="tex-equation" class="text-2xl font-bold text-slate-800 flex items-center"></div>
+
+                        <div class="text-slate-300 text-xl font-light">＝</div>
+
+                        <div class="text-left">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">小数</div>
+                            <div id="disp-decimal" class="text-lg font-bold font-mono text-slate-800">0.75</div>
+                        </div>
+                    </div>
+
+                    <!-- 言語化メッセージ -->
+                    <div id="slope-description" class="mt-3 text-xs md:text-sm font-bold bg-indigo-50 text-indigo-900 py-2.5 px-3 rounded-xl border border-indigo-100 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-person-walking-arrow-right text-indigo-500 text-base"></i>
+                        <span>右に <strong id="desc-dx" class="text-blue-600 text-base">4</strong> 進むと、上に <strong id="desc-dy" class="text-red-600 text-base">3</strong> 進む！</span>
+                    </div>
+                </div>
+
+                <!-- スライダーコントロール -->
+                <div class="space-y-4">
+                    
+                    <!-- 分子 (yの増加量) -->
+                    <div class="bg-red-50/60 p-4 rounded-xl border border-red-100 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-red-600 flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-red-600 inline-block shadow-sm"></span>
+                                分子（縦方向・y の増加量）
+                            </label>
+                            <span id="val-numerator" class="font-mono font-bold text-red-600 bg-white px-2.5 py-0.5 rounded-full text-xs shadow-sm border border-red-200">+3</span>
+                        </div>
+                        <input type="range" id="input-numerator" min="-10" max="10" value="3" step="1"
+                            class="w-full h-2.5 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-600">
+                        <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
+                            <span>-10 (急な下がり)</span>
+                            <span>0 (水平)</span>
+                            <span>+10 (急な上がり)</span>
+                        </div>
+                    </div>
+
+                    <!-- 分母 (xの増加量) -->
+                    <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-blue-600 flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-blue-600 inline-block shadow-sm"></span>
+                                分母（横方向・x の増加量）
+                            </label>
+                            <span id="val-denominator" class="font-mono font-bold text-blue-600 bg-white px-2.5 py-0.5 rounded-full text-xs shadow-sm border border-blue-200">4</span>
+                        </div>
+                        <input type="range" id="input-denominator" min="1" max="10" value="4" step="1"
+                            class="w-full h-2.5 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
+                            <span>1 (1歩が細かい)</span>
+                            <span>5</span>
+                            <span>10 (1歩が大きい)</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- プリセットボタン -->
+                <div>
+                    <div class="text-xs font-bold text-slate-400 mb-2 flex items-center justify-between">
+                        <span>ワンタップで比較する</span>
+                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 text-xs font-bold">
+                        <button onclick="setFraction(1, 2)" class="py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl border border-slate-200 transition text-slate-700 flex flex-col items-center justify-center">
+                            <span class="btn-tex-render" data-tex="\frac{1}{2}"></span>
+                            <span class="text-[10px] font-normal text-slate-500 mt-0.5">(緩やか)</span>
+                        </button>
+                        <button onclick="setFraction(1, 1)" class="py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg border border-slate-200 transition text-slate-700 flex flex-col items-center justify-center">
+                            <span class="btn-tex-render" data-tex="\frac{1}{1}"></span>
+                            <span class="text-[10px] font-normal text-slate-500 mt-0.5">(45度)</span>
+                        </button>
+                        <button onclick="setFraction(3, 1)" class="py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg border border-slate-200 transition text-slate-700 flex flex-col items-center justify-center">
+                            <span class="btn-tex-render" data-tex="\frac{3}{1}"></span>
+                            <span class="text-[10px] font-normal text-slate-500 mt-0.5">(急傾斜)</span>
+                        </button>
+                        <button onclick="setFraction(-2, 3)" class="py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg border border-slate-200 transition text-slate-700 flex flex-col items-center justify-center">
+                            <span class="btn-tex-render" data-tex="-\frac{2}{3}"></span>
+                            <span class="text-[10px] font-normal text-slate-500 mt-0.5">(下がり)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 表示オプション -->
+                <div class="pt-2 border-t border-slate-100 flex flex-wrap gap-4 text-xs font-bold text-slate-600">
+                    <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                        <input type="checkbox" id="chk-steps" checked onchange="drawGraph()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                        <span>直角三角形（ステップ）を表示</span>
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                        <input type="checkbox" id="chk-points" checked onchange="drawGraph()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                        <span>ピッタリ通る点（格子点）を表示</span>
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- グラフ & アニメーションエリア (右側) -->
+            <div class="lg:col-span-7 space-y-4">
+                
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col relative overflow-hidden">
+                    
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <div class="flex items-center gap-2">
+                            <span id="status-indicator-dot" class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span id="canvas-status-title" class="text-xs font-bold text-slate-600">グラフキャンバス (方眼紙)</span>
+                        </div>
+
+                        <div id="action-btn-container">
+                            <button id="btn-animate" onclick="playStepAnimation()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-shoe-prints"></i>
+                                <span id="btn-step-text">階段を1段登る (1段目)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full aspect-square max-h-[500px] bg-slate-900/5 rounded-xl border border-slate-200 overflow-hidden select-none" id="graph-container">
+                        <svg id="graph-svg" class="w-full h-full" viewBox="-10.5 -10.5 21 21">
+                            <!-- JSで全要素(背景・軸・グラフ・ステップ・SVG一体型キャラクター)を描画 -->
+                        </svg>
+                    </div>
+
+                    <!-- グラフ下部 説明ヒント -->
+                    <div class="mt-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-start gap-2.5">
+                        <i class="fa-solid fa-lightbulb text-amber-500 text-base mt-0.5"></i>
+                        <div id="bottom-hint-text">
+                            <!-- JSでTeXレンダリング -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 傾き直感カード -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">急さ (絶対値)</div>
+                            <div id="stat-steepness" class="text-sm font-extrabold text-slate-800">標準的 (0.75)</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-compass-drafting"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">傾斜角</div>
+                            <div id="stat-angle" class="text-sm font-extrabold text-slate-800">36.9°</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-arrows-up-down-left-right"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">グラフの方向</div>
+                            <div id="stat-direction" class="text-sm font-extrabold text-slate-800">右上がり (正の比例)</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="rounded-3xl bg-white p-5 shadow-soft border border-slate-200">
-          <div class="flex items-center justify-between gap-4 mb-3 flex-wrap">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">グラフ</p>
-              <h2 class="mt-1 text-xl font-extrabold text-slate-800">比例の直線</h2>
+        <!-- ゲームモード専用パネル -->
+        <div id="game-panel" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="flex flex-wrap justify-between items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="p-2.5 bg-amber-500 text-white rounded-xl text-base font-bold shadow-sm">
+                        <i class="fa-solid fa-trophy"></i>
+                    </span>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-base">標的あてチャレンジ！</h2>
+                        <p class="text-xs text-slate-600">黄色の星 ★ をピッタリ通る分数の比例定数をスライダーで作ろう！</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase">SCORE</span>
+                        <div id="game-score" class="text-2xl font-black text-amber-600 font-mono leading-none">0</div>
+                    </div>
+                    <button onclick="nextGameLevel()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+                        <span>次の問題</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
             </div>
-            <div class="pill px-3 py-1 text-indigo-700 text-sm font-bold">
-              y = (<span id="graphSlopeValue">3</span>/4)x
+            <div id="game-feedback" class="text-xs font-bold text-slate-700 bg-white/90 p-3 rounded-xl border border-amber-200 flex items-center gap-2">
+                <i class="fa-solid fa-crosshairs text-amber-500 text-base"></i>
+                <span>スライダーを動かして、緑の線がターゲットの星にピッタリ重なるように調整してね！</span>
             </div>
-          </div>
-
-          <div class="graph-wrap rounded-2xl border border-slate-200 p-2">
-            <svg id="graphSvg" viewBox="0 0 360 300" class="block h-72 w-full rounded-xl" aria-label="比例のグラフ">
-              <g id="graphLayer"></g>
-            </svg>
-          </div>
         </div>
 
-        <div class="rounded-3xl bg-white p-5 shadow-soft border border-slate-200">
-          <div class="flex items-center justify-between gap-4 mb-3 flex-wrap">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">スライダー</p>
-              <h2 class="mt-1 text-xl font-extrabold text-slate-800">分子の大きさ</h2>
-            </div>
-            <div class="pill px-3 py-1 text-indigo-700 text-sm font-bold">
-              <span id="sliderValueLabel">3</span>
-            </div>
-          </div>
+    </main>
 
-          <input id="ratioSlider" class="range w-full h-2 rounded-lg cursor-pointer" type="range" min="1" max="9" step="1" value="3" />
+    <script>
+        // アプリケーションの状態管理
+        const state = {
+            num: 3,        // 分子 (yの増加量)
+            den: 4,        // 分母 (xの増加量)
+            currentTab: 'explore',
+            isAnimating: false,
+            currentStepIdx: 0,
+            animProgress: { x: 0, y: 0, active: false, phase: 'none' },
+            slopeAnim: {
+                active: false,
+                progressRatio: 0, // 0.0 〜 1.0 (走行範囲の進捗率)
+                rafId: null,
+                lastTimestamp: null
+            },
+            game: {
+                targetX: 6,
+                targetY: 4,
+                score: 0,
+                cleared: false
+            }
+        };
 
-          <div class="mt-4 flex justify-between text-sm text-slate-500 font-semibold">
-            <span>1</span>
-            <span>2</span>
-            <span>3</span>
-            <span>4</span>
-            <span>5</span>
-            <span>6</span>
-            <span>7</span>
-            <span>8</span>
-            <span>9</span>
-          </div>
-        </div>
-      </div>
+        // DOM要素参照
+        const svg = document.getElementById('graph-svg');
+        const inputNum = document.getElementById('input-numerator');
+        const inputDen = document.getElementById('input-denominator');
+        const valNum = document.getElementById('val-numerator');
+        const valDen = document.getElementById('val-denominator');
+        const dispNum = document.getElementById('disp-numerator');
+        const dispDen = document.getElementById('disp-denominator');
+        const dispDecimal = document.getElementById('disp-decimal');
+        const descDx = document.getElementById('desc-dx');
+        const descDy = document.getElementById('desc-dy');
+        const slopeDescription = document.getElementById('slope-description');
+        const gamePanel = document.getElementById('game-panel');
+        const gameScore = document.getElementById('game-score');
+        const gameFeedback = document.getElementById('game-feedback');
+        const actionBtnContainer = document.getElementById('action-btn-container');
 
-      <div class="rounded-3xl bg-white p-5 shadow-soft border border-slate-200">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">確認</p>
-        <h2 class="mt-2 text-xl font-extrabold text-slate-800">グラフの見方</h2>
+        // イベントリスナー設定
+        window.addEventListener('DOMContentLoaded', () => {
+            // プリセットボタン等のTeX初期描画
+            document.querySelectorAll('.btn-tex-render').forEach(el => {
+                const texStr = el.getAttribute('data-tex');
+                if (texStr && window.katex) {
+                    katex.render(texStr, el, { throwOnError: false });
+                }
+            });
 
-        <div class="mt-5 space-y-4 text-sm text-slate-600">
-          <div class="grid-cell p-4">
-            <p class="font-bold text-slate-700">比例の式</p>
-            <p class="mt-2 text-lg font-extrabold text-indigo-600" id="equationText">y = (3/4)x</p>
-          </div>
+            inputNum.addEventListener('input', (e) => {
+                state.num = parseInt(e.target.value, 10);
+                resetStepIndex();
+                updateUI();
+            });
 
-          <div class="grid-cell p-4">
-            <p class="font-bold text-slate-700">分数の意味</p>
-            <p class="mt-2 text-base leading-relaxed">
-              <span class="text-red-600 font-extrabold">分子</span>は上、<span class="text-blue-600 font-extrabold">分母</span>は下です。
-            </p>
-          </div>
+            inputDen.addEventListener('input', (e) => {
+                state.den = parseInt(e.target.value, 10);
+                resetStepIndex();
+                updateUI();
+            });
 
-          <div class="grid-cell p-4">
-            <p class="font-bold text-slate-700">傾きの説明</p>
-            <p class="mt-2 leading-relaxed" id="slopeText">
-              右に4進むと、上に3上がるので、傾きは 3/4 です。
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+            window.addEventListener('resize', () => {
+                drawGraph();
+            });
 
-  <script>
-    const slider = document.getElementById('ratioSlider');
-    const fractionNum = document.getElementById('fractionNum');
-    const fractionDen = document.getElementById('fractionDen');
-    const fractionText = document.getElementById('fractionText');
-    const decimalValue = document.getElementById('decimalValue');
-    const explanationText = document.getElementById('explanationText');
-    const equationText = document.getElementById('equationText');
-    const slopeText = document.getElementById('slopeText');
-    const sliderValueLabel = document.getElementById('sliderValueLabel');
-    const graphSlopeValue = document.getElementById('graphSlopeValue');
-    const graphLayer = document.getElementById('graphLayer');
+            updateUI();
+        });
 
-    const denominator = 4;
-    const xMax = 8;
-    const yMax = 20;
-    const width = 360;
-    const height = 300;
-    const padding = { top: 18, right: 18, bottom: 42, left: 42 };
+        function resetStepIndex() {
+            state.currentStepIdx = 0;
+            state.animProgress.active = false;
+            updateStepButtonText();
+        }
 
-    function formatDecimal(value) {
-      return Number(value).toFixed(2);
-    }
+        function setFraction(n, d) {
+            state.num = n;
+            state.den = d;
+            inputNum.value = n;
+            inputDen.value = d;
+            resetStepIndex();
+            updateUI();
+        }
 
-    function xScale(value) {
-      return padding.left + (value / xMax) * (width - padding.left - padding.right);
-    }
+        function switchTab(tab) {
+            state.currentTab = tab;
+            stopSlopeAnimation();
 
-    function yScale(value) {
-      return height - padding.bottom - (value / yMax) * (height - padding.top - padding.bottom);
-    }
+            ['explore', 'slope', 'game'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 bg-white text-indigo-600 shadow-sm font-bold";
+                } else {
+                    btn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-bold";
+                }
+            });
 
-    function drawGraph(numerator) {
-      const lineValue = numerator / denominator;
-      const x2 = xMax;
-      const y2 = lineValue * xMax;
+            if (tab === 'slope') {
+                gamePanel.classList.add('hidden');
+                document.getElementById('canvas-status-title').textContent = "坂道体感モード (同軸完全同期)";
+                
+                actionBtnContainer.innerHTML = `
+                    <button onclick="toggleSlopeAnimation()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                        <i id="slope-play-icon" class="fa-solid fa-play"></i>
+                        <span id="slope-play-text">走らせる！</span>
+                    </button>
+                `;
+                startSlopeAnimation();
 
-      const tickValuesX = Array.from({ length: xMax + 1 }, (_, i) => i);
-      const tickValuesY = [0, 5, 10, 15, 20];
+            } else if (tab === 'game') {
+                gamePanel.classList.remove('hidden');
+                document.getElementById('canvas-status-title').textContent = "ターゲットチャレンジ画面";
 
-      const gridLines = [];
-      tickValuesX.forEach((tick) => {
-        const x = xScale(tick);
-        gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4" />`);
-        gridLines.push(`<text x="${x}" y="${height - 12}" text-anchor="middle" font-size="11" fill="#64748b">${tick}</text>`);
-      });
+                actionBtnContainer.innerHTML = `
+                    <button id="btn-animate" onclick="playStepAnimation()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-shoe-prints"></i>
+                        <span id="btn-step-text">階段を1段登る</span>
+                    </button>
+                `;
 
-      tickValuesY.forEach((tick) => {
-        const y = yScale(tick);
-        gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 4" />`);
-        gridLines.push(`<text x="${padding.left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#64748b">${tick}</text>`);
-      });
+                if (!state.game.cleared && state.game.score === 0) {
+                    nextGameLevel();
+                }
 
-      const pointX = xScale(4);
-      const pointY = yScale(numerator);
-      const line = `M ${padding.left} ${yScale(0)} L ${xScale(x2)} ${yScale(y2)}`;
+            } else {
+                gamePanel.classList.add('hidden');
+                document.getElementById('canvas-status-title').textContent = "グラフキャンバス (方眼紙)";
 
-      graphLayer.innerHTML = `
-        <rect x="0" y="0" width="${width}" height="${height}" fill="transparent" />
-        ${gridLines.join('')}
-        <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="#0f172a" stroke-width="2" />
-        <line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="#0f172a" stroke-width="2" />
-        <path d="${line}" fill="none" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-        <circle cx="${pointX}" cy="${pointY}" r="5" fill="#ef4444" stroke="#fff" stroke-width="2" />
-        <text x="${width - 16}" y="${height - 14}" text-anchor="end" font-size="12" fill="#0f172a" font-weight="700">x</text>
-        <text x="${padding.left + 8}" y="${padding.top + 8}" text-anchor="start" font-size="12" fill="#0f172a" font-weight="700">y</text>
-      `;
-    }
+                actionBtnContainer.innerHTML = `
+                    <button id="btn-animate" onclick="playStepAnimation()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-shoe-prints"></i>
+                        <span id="btn-step-text">階段を1段登る</span>
+                    </button>
+                `;
+                updateStepButtonText();
+            }
 
-    function updateVisuals() {
-      const numerator = Number(slider.value);
-      const value = numerator / denominator;
+            updateUI();
+        }
 
-      fractionNum.textContent = numerator;
-      fractionDen.textContent = denominator;
-      fractionText.textContent = `${numerator}/${denominator}`;
-      decimalValue.textContent = formatDecimal(value);
-      sliderValueLabel.textContent = numerator;
-      graphSlopeValue.textContent = numerator;
+        function updateStepButtonText() {
+            const btnText = document.getElementById('btn-step-text');
+            if (btnText) {
+                const currentStepNumber = state.currentStepIdx + 1;
+                btnText.textContent = `階段を1段登る (${currentStepNumber}段目)`;
+            }
+        }
 
-      explanationText.textContent = `右に${denominator}進むと、上に${numerator}上がります。`;
-      equationText.textContent = `y = (${numerator}/${denominator})x`;
-      slopeText.textContent = `右に${denominator}進むと、上に${numerator}上がるので、傾きは ${numerator}/${denominator} です。`;
+        function updateUI() {
+            const num = state.num;
+            const den = state.den;
+            const val = den !== 0 ? num / den : 0;
 
-      drawGraph(numerator);
-    }
+            valNum.textContent = num > 0 ? `+${num}` : num;
+            valDen.textContent = den;
+            dispDecimal.textContent = val.toFixed(2);
 
-    slider.addEventListener('input', updateVisuals);
-    updateVisuals();
-  </script>
+            descDx.textContent = den;
+            descDy.textContent = Math.abs(num);
+
+            // 1. メイン数式のTeX表示レンダリング (分子=赤, 分母=青で色分け)
+            const texEqElem = document.getElementById('tex-equation');
+            if (texEqElem && window.katex) {
+                const absNum = Math.abs(num);
+                const signStr = num < 0 ? '-' : '';
+                const texString = `y = ${signStr}\\frac{\\color{#DC2626}{${absNum}}}{\\color{#2563EB}{${den}}} x`;
+                katex.render(texString, texEqElem, { throwOnError: false });
+            }
+
+            // 2. グラフ下部ヒントのTeXレンダリング
+            const bottomHintElem = document.getElementById('bottom-hint-text');
+            if (bottomHintElem && window.katex) {
+                const formulaTex = katex.renderToString("y = ax", { throwOnError: false });
+                const slopeTex = katex.renderToString("a = \\frac{\\text{分子}}{\\text{分母}}", { throwOnError: false });
+                bottomHintElem.innerHTML = `<strong>ポイント：</strong> 比例のグラフ ${formulaTex} の傾き ${slopeTex} は「分母進んで分子進む」ルール。分母が大きいほど傾きはゆるやかに、分子が大きいほど急になります。`;
+            }
+
+            if (num > 0) {
+                slopeDescription.innerHTML = `
+                    <i class="fa-solid fa-arrow-trend-up text-emerald-500 text-base"></i>
+                    <span>右に <strong class="text-blue-600 text-base">${den}</strong> 進むと、<strong>上に <span class="text-red-600 text-base">${num}</span></strong> 進む！（右上がり）</span>
+                `;
+            } else if (num < 0) {
+                slopeDescription.innerHTML = `
+                    <i class="fa-solid fa-arrow-trend-down text-rose-500 text-base"></i>
+                    <span>右に <strong class="text-blue-600 text-base">${den}</strong> 進むと、<strong>下に <span class="text-red-600 text-base">${Math.abs(num)}</span></strong> 進む！（右下がり）</span>
+                `;
+            } else {
+                slopeDescription.innerHTML = `
+                    <i class="fa-solid fa-grip-lines text-slate-500 text-base"></i>
+                    <span>右に進んでも<strong>上下に動かない</strong>（ま～っすぐな水平線）</span>
+                `;
+            }
+
+            const angleRad = Math.atan(val);
+            const angleDeg = angleRad * (180 / Math.PI);
+            document.getElementById('stat-angle').textContent = `${angleDeg.toFixed(1)}°`;
+
+            const absVal = Math.abs(val);
+            let steepnessText = "標準的";
+            if (absVal === 0) steepnessText = "水平 (0.0)";
+            else if (absVal < 0.4) steepnessText = "とても緩やか";
+            else if (absVal < 0.8) steepnessText = "やや緩やか";
+            else if (absVal === 1) steepnessText = "ちょうど45度";
+            else if (absVal < 2.5) steepnessText = "急な傾き";
+            else steepnessText = "壁のような激坂！";
+            document.getElementById('stat-steepness').textContent = `${steepnessText} (${absVal.toFixed(2)})`;
+
+            let dirText = "水平";
+            if (num > 0) dirText = "右上がり (正の比例)";
+            else if (num < 0) dirText = "右下がり (負の比例)";
+            document.getElementById('stat-direction').textContent = dirText;
+
+            if (state.currentTab === 'game') {
+                checkGameCondition();
+            }
+
+            drawGraph();
+        }
+
+        function drawGraph() {
+            const num = state.num;
+            const den = state.den;
+            const slopeValue = num / den;
+            const showSteps = document.getElementById('chk-steps').checked;
+            const showPoints = document.getElementById('chk-points').checked;
+
+            const gridRange = 10;
+            let svgContent = '';
+
+            // 方眼紙の背景色 (薄いノート風ベース)
+            svgContent += `<rect x="-10.5" y="-10.5" width="21" height="21" fill="#f8fafc" />`;
+
+            // 1. 坂道モード時：山・斜面の透過塗りつぶし
+            if (state.currentTab === 'slope') {
+                const xLeft = -10;
+                const yLeft = slopeValue * xLeft;
+                const xRight = 10;
+                const yRight = slopeValue * xRight;
+
+                svgContent += `
+                    <polygon points="${xLeft},10 ${xLeft},${-yLeft} ${xRight},${-yRight} ${xRight},10" 
+                             fill="url(#slopeGradient)" opacity="0.3" />
+                    <defs>
+                        <linearGradient id="slopeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#4F46E5" />
+                            <stop offset="100%" stop-color="#E0E7FF" stop-opacity="0.1" />
+                        </linearGradient>
+                    </defs>
+                `;
+            }
+
+            // 2. 本格方眼紙グリッド (1マス=細線, 5マス=やや太線, 0=軸)
+            for (let i = -gridRange; i <= gridRange; i++) {
+                const isAxis = (i === 0);
+                const isMajor = (i % 5 === 0);
+                
+                let strokeColor = '#e2e8f0'; // 細いグリッド線 (1刻み)
+                let strokeWidth = '0.04';
+
+                if (isMajor) {
+                    strokeColor = '#cbd5e1'; // 5刻みの太い線
+                    strokeWidth = '0.08';
+                }
+                if (isAxis) {
+                    strokeColor = '#475569'; // x軸・y軸
+                    strokeWidth = '0.2';
+                }
+
+                // 縦線
+                svgContent += `<line x1="${i}" y1="-${gridRange}" x2="${i}" y2="${gridRange}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
+                // 横線
+                svgContent += `<line x1="-${gridRange}" y1="${i}" x2="${gridRange}" y2="${i}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
+
+                // 数値目盛り (2ごと)
+                if (!isAxis && i % 2 === 0) {
+                    svgContent += `<text x="${i}" y="0.8" font-size="0.45" font-weight="700" text-anchor="middle" fill="#64748b" font-family="sans-serif">${i}</text>`;
+                    svgContent += `<text x="-0.4" y="${-i + 0.15}" font-size="0.45" font-weight="700" text-anchor="end" fill="#64748b" font-family="sans-serif">${i}</text>`;
+                }
+            }
+
+            // 軸ラベル
+            svgContent += `<text x="9.7" y="-0.4" font-size="0.65" font-weight="800" fill="#334155">x</text>`;
+            svgContent += `<text x="0.4" y="-9.3" font-size="0.65" font-weight="800" fill="#334155">y</text>`;
+            svgContent += `<text x="-0.5" y="0.8" font-size="0.55" font-weight="800" fill="#475569">O</text>`;
+
+            // 3. 比例の直線 (緑色)
+            const x1 = -gridRange;
+            const y1 = slopeValue * x1;
+            const x2 = gridRange;
+            const y2 = slopeValue * x2;
+
+            svgContent += `<line x1="${x1}" y1="${-y1}" x2="${x2}" y2="${-y2}" stroke="#059669" stroke-width="0.3" stroke-linecap="round" />`;
+
+            // 4. 直角三角形 (階段ステップ) 描画
+            if (showSteps && den !== 0) {
+                const maxSteps = Math.min(10, Math.floor(10 / den));
+                for (let k = 0; k < maxSteps; k++) {
+                    const startX = k * den;
+                    const startY = k * num;
+                    const midX = (k + 1) * den;
+                    const midY = k * num;
+                    const endX = (k + 1) * den;
+                    const endY = (k + 1) * num;
+
+                    if (Math.abs(endX) <= gridRange && Math.abs(endY) <= gridRange) {
+                        const isCurrentActiveStep = (k === state.currentStepIdx);
+                        const strokeWidth = isCurrentActiveStep ? "0.35" : "0.2";
+                        const dxColor = isCurrentActiveStep ? "#1D4ED8" : "#2563EB";
+                        const dyColor = isCurrentActiveStep ? "#B91C1C" : "#DC2626";
+
+                        // 横移動 (分母: 青線)
+                        svgContent += `<line x1="${startX}" y1="${-startY}" x2="${midX}" y2="${-midY}" stroke="${dxColor}" stroke-width="${strokeWidth}" stroke-dasharray="${isCurrentActiveStep ? 'none' : '0.3,0.15'}" />`;
+                        
+                        // 縦移動 (分子: 赤線)
+                        svgContent += `<line x1="${midX}" y1="${-midY}" x2="${endX}" y2="${-endY}" stroke="${dyColor}" stroke-width="${strokeWidth}" stroke-dasharray="${isCurrentActiveStep ? 'none' : '0.3,0.15'}" />`;
+
+                        const opacity = isCurrentActiveStep ? '0.25' : '0.08';
+                        svgContent += `<polygon points="${startX},${-startY} ${midX},${-midY} ${endX},${-endY}" fill="${num >= 0 ? `rgba(37, 99, 235, ${opacity})` : `rgba(220, 38, 38, ${opacity})`}" />`;
+
+                        const textDxX = (startX + midX) / 2;
+                        const textDxY = -startY + (num >= 0 ? 0.75 : -0.35);
+                        svgContent += `<text x="${textDxX}" y="${textDxY}" font-size="${isCurrentActiveStep ? '0.65' : '0.5'}" font-weight="bold" fill="${dxColor}" text-anchor="middle">＋${den}</text>`;
+
+                        const textDyX = midX + (midX < 8 ? 0.45 : -0.45);
+                        const textAnchor = midX < 8 ? 'start' : 'end';
+                        const textDyY = -(startY + endY) / 2 + 0.18;
+                        const dyLabel = num >= 0 ? `＋${num}` : `${num}`;
+                        svgContent += `<text x="${textDyX}" y="${textDyY}" font-size="${isCurrentActiveStep ? '0.65' : '0.5'}" font-weight="bold" fill="${dyColor}" text-anchor="${textAnchor}">${dyLabel}</text>`;
+                    }
+                }
+            }
+
+            // 5. 格子点 (ピッタリ通る点)
+            if (showPoints) {
+                for (let px = -gridRange; px <= gridRange; px += den) {
+                    const py = slopeValue * px;
+                    if (Number.isInteger(py) && Math.abs(py) <= gridRange) {
+                        const isOrigin = (px === 0 && py === 0);
+                        const isCurrentPoint = (px === state.currentStepIdx * den && py === state.currentStepIdx * num);
+                        
+                        let radius = isOrigin ? '0.4' : '0.28';
+                        let fillColor = isOrigin ? '#4F46E5' : '#059669';
+
+                        if (isCurrentPoint && state.currentStepIdx > 0) {
+                            radius = '0.45';
+                            fillColor = '#F59E0B';
+                        }
+
+                        svgContent += `<circle cx="${px}" cy="${-py}" r="${radius}" fill="${fillColor}" stroke="#ffffff" stroke-width="0.08" />`;
+                    }
+                }
+            }
+
+            // 6. ゲーム目標の星 ★
+            if (state.currentTab === 'game') {
+                const tx = state.game.targetX;
+                const ty = state.game.targetY;
+                svgContent += `
+                    <g transform="translate(${tx}, ${-ty})">
+                        <text x="0" y="0.35" font-size="1.8" text-anchor="middle" fill="#F59E0B" filter="drop-shadow(0px 2px 4px rgba(0,0,0,0.2))">★</text>
+                        <circle cx="0" cy="0" r="1.1" fill="none" stroke="#F59E0B" stroke-width="0.1" stroke-dasharray="0.3,0.2">
+                            <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/>
+                        </circle>
+                    </g>
+                `;
+            }
+
+            // 7. アニメーション中のSVG移動ドット
+            if (state.animProgress.active) {
+                const cx = state.animProgress.x;
+                const cy = -state.animProgress.y;
+                const dotColor = state.animProgress.phase === 'x' ? '#2563EB' : '#DC2626';
+
+                svgContent += `<circle cx="${cx}" cy="${cy}" r="0.8" fill="none" stroke="${dotColor}" stroke-width="0.1" opacity="0.6">
+                    <animate attributeName="r" values="0.4;1.2" dur="0.8s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.8;0" dur="0.8s" repeatCount="indefinite"/>
+                </circle>`;
+
+                svgContent += `<circle cx="${cx}" cy="${cy}" r="0.45" fill="${dotColor}" stroke="#ffffff" stroke-width="0.1" />`;
+            }
+
+            // 8. 【完璧修正】坂道体感モードのPure SVGランナー（前向き進行＆吹き出し水平自動補正）
+            if (state.currentTab === 'slope') {
+                svgContent += `
+                <g id="svg-runner-group" transform="translate(0, 0)">
+                    <!-- 体の傾斜回転グループ -->
+                    <g id="svg-runner-rotate" transform="rotate(0)">
+                        <!-- 吹き出しグループ (位置を少し引き上げ translate(0, -2.65)) -->
+                        <g id="svg-runner-bubble-group" transform="translate(0, -2.65) rotate(0)">
+                            <rect id="svg-runner-bubble-bg" x="-2.2" y="-0.5" width="4.4" height="0.8" rx="0.4" fill="#0f172a" opacity="0.9" />
+                            <polygon points="0,0.4 -0.2,0.3 0.2,0.3" fill="#0f172a" opacity="0.9" />
+                            <text id="svg-runner-speech" x="0" y="0.05" font-size="0.38" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">登るぞー！</text>
+                        </g>
+                        <!-- 足元の土煙エフェクト -->
+                        <circle cx="-0.3" cy="-0.1" r="0.25" fill="#cbd5e1" class="dust-particle" opacity="0.6"/>
+                        <!-- ランナー体・絵文字（緑の線から少し離して浮かす translate(0, -0.45)） -->
+                        <g id="svg-runner-body" transform="translate(0, -0.45) scale(-1, 1)">
+                            <text id="svg-runner-emoji" x="0" y="0" font-size="1.4" text-anchor="middle" dominant-baseline="bottom" filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.3))">🏃</text>
+                        </g>
+                    </g>
+                </g>`;
+            }
+
+            svg.innerHTML = svgContent;
+
+            // 坂道モード時、アニメーション位置更新
+            if (state.currentTab === 'slope' && state.slopeAnim.active) {
+                updateRunnerPosition();
+            }
+        }
+
+        function playStepAnimation() {
+            if (state.isAnimating) return;
+            state.isAnimating = true;
+
+            const den = state.den;
+            const num = state.num;
+
+            const stepIdx = state.currentStepIdx;
+            const startX = stepIdx * den;
+            const startY = stepIdx * num;
+            const midX = (stepIdx + 1) * den;
+            const midY = startY;
+            const endX = (stepIdx + 1) * den;
+            const endY = (stepIdx + 1) * num;
+
+            if (Math.abs(endX) > 10 || Math.abs(endY) > 10) {
+                state.currentStepIdx = 0;
+                state.isAnimating = false;
+                updateStepButtonText();
+                drawGraph();
+                setTimeout(playStepAnimation, 100);
+                return;
+            }
+
+            state.animProgress.active = true;
+            const startTime = performance.now();
+            const durationX = 600;
+            const durationY = 600;
+            const totalDuration = durationX + durationY;
+
+            function animateStep(now) {
+                const elapsed = now - startTime;
+
+                if (elapsed < durationX) {
+                    state.animProgress.phase = 'x';
+                    const progress = elapsed / durationX;
+                    state.animProgress.x = startX + (midX - startX) * progress;
+                    state.animProgress.y = startY;
+                } else if (elapsed < totalDuration) {
+                    state.animProgress.phase = 'y';
+                    const progress = (elapsed - durationX) / durationY;
+                    state.animProgress.x = midX;
+                    state.animProgress.y = startY + (endY - startY) * progress;
+                } else {
+                    state.animProgress.x = endX;
+                    state.animProgress.y = endY;
+                }
+
+                drawGraph();
+
+                if (elapsed < totalDuration) {
+                    requestAnimationFrame(animateStep);
+                } else {
+                    state.animProgress.active = false;
+                    state.isAnimating = false;
+                    state.currentStepIdx += 1;
+
+                    const nextEndX = (state.currentStepIdx + 1) * den;
+                    const nextEndY = (state.currentStepIdx + 1) * num;
+                    if (Math.abs(nextEndX) > 10 || Math.abs(nextEndY) > 10) {
+                        state.currentStepIdx = 0;
+                    }
+
+                    updateStepButtonText();
+                    drawGraph();
+                }
+            }
+
+            requestAnimationFrame(animateStep);
+        }
+
+        function startSlopeAnimation() {
+            if (state.slopeAnim.active) return;
+            state.slopeAnim.active = true;
+            state.slopeAnim.progressRatio = 0;
+            state.slopeAnim.lastTimestamp = null;
+            updatePlayButtonUI(true);
+            
+            state.slopeAnim.rafId = requestAnimationFrame(runSlopeLoop);
+        }
+
+        function stopSlopeAnimation() {
+            state.slopeAnim.active = false;
+            if (state.slopeAnim.rafId) {
+                cancelAnimationFrame(state.slopeAnim.rafId);
+                state.slopeAnim.rafId = null;
+            }
+            updatePlayButtonUI(false);
+        }
+
+        function toggleSlopeAnimation() {
+            if (state.slopeAnim.active) {
+                stopSlopeAnimation();
+            } else {
+                startSlopeAnimation();
+            }
+        }
+
+        function updatePlayButtonUI(isPlaying) {
+            const icon = document.getElementById('slope-play-icon');
+            const text = document.getElementById('slope-play-text');
+            if (icon && text) {
+                if (isPlaying) {
+                    icon.className = "fa-solid fa-pause";
+                    text.textContent = "一時停止";
+                } else {
+                    icon.className = "fa-solid fa-play";
+                    text.textContent = "走らせる！";
+                }
+            }
+        }
+
+        function runSlopeLoop(timestamp) {
+            if (!state.slopeAnim.active || state.currentTab !== 'slope') return;
+
+            if (!state.slopeAnim.lastTimestamp) state.slopeAnim.lastTimestamp = timestamp;
+            const dt = Math.min((timestamp - state.slopeAnim.lastTimestamp) / 1000, 0.1);
+            state.slopeAnim.lastTimestamp = timestamp;
+
+            const slopeValue = state.num / state.den;
+            const bound = 9.0;
+
+            let xStart = -bound;
+            let xEnd = bound;
+
+            if (slopeValue !== 0) {
+                const xLimitByY = bound / Math.abs(slopeValue);
+                const xMaxVal = Math.min(bound, xLimitByY);
+                xStart = -xMaxVal;
+                xEnd = xMaxVal;
+            }
+
+            const totalDx = xEnd - xStart;
+            const totalDy = slopeValue * totalDx;
+            const slopeLength = Math.sqrt(totalDx * totalDx + totalDy * totalDy);
+
+            // 速度計算：上り坂（$a>0$）はゆっくり、下り坂（$a<0$）はスピードアップ
+            let baseSpeed = 4.5;
+            if (slopeValue > 0) {
+                baseSpeed = Math.max(1.2, 4.5 - slopeValue * 0.8);
+            } else if (slopeValue < 0) {
+                baseSpeed = 4.5 + Math.abs(slopeValue) * 0.8;
+            }
+
+            const progressDelta = (baseSpeed / Math.max(0.1, slopeLength)) * dt;
+            state.slopeAnim.progressRatio += progressDelta;
+
+            if (state.slopeAnim.progressRatio > 1.0) {
+                state.slopeAnim.progressRatio = 0.0;
+            }
+
+            // 位置と方向の更新
+            updateRunnerPosition();
+
+            state.slopeAnim.rafId = requestAnimationFrame(runSlopeLoop);
+        }
+
+        function updateRunnerPosition() {
+            const runnerGroup = document.getElementById('svg-runner-group');
+            const runnerRotate = document.getElementById('svg-runner-rotate');
+            const runnerBody = document.getElementById('svg-runner-body');
+            const runnerBubbleGroup = document.getElementById('svg-runner-bubble-group');
+            const speech = document.getElementById('svg-runner-speech');
+            const bubbleBg = document.getElementById('svg-runner-bubble-bg');
+            const emoji = document.getElementById('svg-runner-emoji');
+
+            if (!runnerGroup || !runnerRotate) return;
+
+            const slopeValue = state.num / state.den;
+            const bound = 9.0;
+
+            let xStart = -bound;
+            let xEnd = bound;
+
+            if (slopeValue !== 0) {
+                const xLimitByY = bound / Math.abs(slopeValue);
+                const xMaxVal = Math.min(bound, xLimitByY);
+                xStart = -xMaxVal;
+                xEnd = xMaxVal;
+            }
+
+            const currX = xStart + (xEnd - xStart) * state.slopeAnim.progressRatio;
+            const currY = slopeValue * currX;
+
+            // 1. SVGでの位置設定
+            runnerGroup.setAttribute('transform', `translate(${currX}, ${-currY})`);
+
+            // 2. 足元を中心とした体の傾斜角度回転
+            const angleRad = Math.atan(slopeValue);
+            const angleDeg = angleRad * (180 / Math.PI);
+            runnerRotate.setAttribute('transform', `rotate(${-angleDeg})`);
+
+            // 3. 【不自然さ解消1】左→右への進行に合わせて絵文字を左右反転し、絶対に前を向いて走らせる！
+            if (runnerBody) {
+                runnerBody.setAttribute('transform', 'scale(-1, 1)'); // 右向きに反転（前向き走）
+            }
+
+            // 4. 【不自然さ解消2】吹き出し（テキスト）は角度を打ち消して常に水平に保つ！
+            if (runnerBubbleGroup) {
+                runnerBubbleGroup.setAttribute('transform', `translate(0, -2.65) rotate(${angleDeg})`);
+            }
+
+            // 5. リアクションテキスト・カラーの切り替え
+            if (slopeValue > 1.5) {
+                if (emoji) emoji.textContent = "🧗";
+                if (speech) speech.textContent = "ぜぇぜぇ… 激坂！";
+                if (bubbleBg) bubbleBg.setAttribute("fill", "#be123c");
+            } else if (slopeValue > 0.4) {
+                if (emoji) emoji.textContent = "🏃";
+                if (speech) speech.textContent = "ファイト！上り坂！";
+                if (bubbleBg) bubbleBg.setAttribute("fill", "#4338ca");
+            } else if (slopeValue >= -0.4) {
+                if (emoji) emoji.textContent = "🏃";
+                if (speech) speech.textContent = "平らで快適ルンルン♪";
+                if (bubbleBg) bubbleBg.setAttribute("fill", "#047857");
+            } else if (slopeValue >= -1.5) {
+                if (emoji) emoji.textContent = "🏃";
+                if (speech) speech.textContent = "わーい！坂を下ってる！";
+                if (bubbleBg) bubbleBg.setAttribute("fill", "#b45309");
+            } else {
+                if (emoji) emoji.textContent = "⛷️";
+                if (speech) speech.textContent = "きゃー！急滑降だー！";
+                if (bubbleBg) bubbleBg.setAttribute("fill", "#0369a1");
+            }
+        }
+
+        function checkGameCondition() {
+            const tx = state.game.targetX;
+            const ty = state.game.targetY;
+            
+            const isMatch = (ty * state.den === state.num * tx);
+
+            if (isMatch && !state.game.cleared) {
+                state.game.cleared = true;
+                state.game.score += 100;
+                gameScore.textContent = state.game.score;
+
+                const absNum = Math.abs(state.num);
+                const signStr = state.num < 0 ? '-' : '';
+                const fracTex = window.katex ? katex.renderToString(`a = ${signStr}\\frac{${absNum}}{${state.den}}`, { throwOnError: false }) : `a = ${state.num}/${state.den}`;
+
+                gameFeedback.className = "text-xs font-bold text-emerald-900 bg-emerald-100 p-3 rounded-xl border border-emerald-300 flex items-center gap-2.5 animate-bounce-custom";
+                gameFeedback.innerHTML = `
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                    <span>正解！★ の座標 (${tx}, ${ty}) を通る比例定数 ${fracTex} をピッタリ発見！</span>
+                `;
+            } else if (!isMatch) {
+                state.game.cleared = false;
+                gameFeedback.className = "text-xs font-bold text-slate-700 bg-white/90 p-3 rounded-xl border border-amber-200 flex items-center gap-2";
+                gameFeedback.innerHTML = `
+                    <i class="fa-solid fa-crosshairs text-amber-500 text-base"></i>
+                    <span>目標の星の座標は <strong>(${tx}, ${ty})</strong>。右に ${tx}、上下に ${ty} 進む分数を作ってみよう！</span>
+                `;
+            }
+        }
+
+        function nextGameLevel() {
+            const possibleDens = [1, 2, 3, 4, 5];
+            const possibleNums = [-4, -3, -2, -1, 1, 2, 3, 4, 5];
+
+            const randDen = possibleDens[Math.floor(Math.random() * possibleDens.length)];
+            const randNum = possibleNums[Math.floor(Math.random() * possibleNums.length)];
+
+            const k = Math.floor(Math.random() * 2) + 1;
+
+            let targetX = randDen * k;
+            let targetY = randNum * k;
+
+            if (Math.abs(targetX) > 8 || Math.abs(targetY) > 8) {
+                targetX = randDen;
+                targetY = randNum;
+            }
+
+            state.game.targetX = targetX;
+            state.game.targetY = targetY;
+            state.game.cleared = false;
+
+            checkGameCondition();
+            drawGraph();
+        }
+    </script>
 </body>
 </html>
