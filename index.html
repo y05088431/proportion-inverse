@@ -364,19 +364,18 @@
     function updateFormula() {
       const value = state.den === 0 ? 0 : state.num / state.den;
       $('dec-value').textContent = value.toFixed(2);
-      $('den-value').textContent = state.den;
+      $('den-value').textContent = String(state.den);
       $('num-value').textContent = signedNumber(state.num);
-      $('msg-dx').textContent = state.den;
-      $('msg-dy').textContent = Math.abs(state.num);
+      $('msg-dx').textContent = String(state.den);
+      $('msg-dy').textContent = String(Math.abs(state.num));
 
-      const formula = `
+      $('formula-render').innerHTML = `
         <div class="flex items-center gap-2 text-slate-800">
           <span class="font-black">a</span>
           <span class="text-slate-300 text-2xl">=</span>
           ${fractionMarkup(state.num, state.den)}
         </div>
       `;
-      $('formula-render').innerHTML = formula;
 
       const absNum = Math.abs(state.num);
       if (state.num > 0) {
@@ -409,7 +408,7 @@
       $('stat-steep').textContent = `${steepText} (${Math.abs(value).toFixed(2)})`;
 
       $('stat-dir').textContent = value > 0 ? '右上がり' : value < 0 ? '右下がり' : '水平';
-      $('hint-text').innerHTML = `分母が大きいと傾きはゆるやかです。分子が大きいと、<strong>右に進んだときに上がる量が大きく</strong>なります。`;
+      $('hint-text').innerHTML = '分母が大きいと傾きはゆるやかです。分子が大きいと、<strong>右に進んだときに上がる量が大きく</strong>なります。';
 
       if (state.currentTab === 'game') {
         checkGame();
@@ -466,8 +465,8 @@
     function setFraction(n, d) {
       state.num = n;
       state.den = d;
-      $('input-numerator').value = n;
-      $('input-denominator').value = d;
+      $('input-numerator').value = String(n);
+      $('input-denominator').value = String(d);
       updateFormula();
       state.stepIndex = 0;
     }
@@ -490,7 +489,6 @@
       });
 
       $('next-problem').addEventListener('click', setGameLevel);
-
       $('step-btn').addEventListener('click', playStepAnimation);
     }
 
@@ -503,7 +501,7 @@
       const x0 = W / 2;
       const y0 = H / 2;
       const scale = 18;
-      const slope = state.num / state.den;
+      const slope = state.den === 0 ? 0 : state.num / state.den;
       const showSteps = $('toggle-steps').checked;
       const showPoints = $('toggle-points').checked;
 
@@ -547,17 +545,20 @@
           const midx = x0 + ((sx + ex) / 2) * scale;
           const midy = y0 - ((sy + ey) / 2) * scale;
 
-          // x 구간
-          lines += `<line x1="${p1x}" y1="${p1y}" x2="${x0 + ex * scale}" y2="${p1y}" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" opacity="0.8" />`;
-          lines += `<line x1="${x0 + ex * scale}" y1="${p1y}" x2="${x0 + ex * scale}" y2="${p2y}" stroke="#dc2626" stroke-width="2.4" stroke-linecap="round" opacity="0.8" />`;
+          lines += `<line x1="${p1x}" y1="${p1y}" x2="${p2x}" y2="${p1y}" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" opacity="0.8" />`;
+          lines += `<line x1="${p2x}" y1="${p1y}" x2="${p2x}" y2="${p2y}" stroke="#dc2626" stroke-width="2.4" stroke-linecap="round" opacity="0.8" />`;
 
           if (k === state.stepIndex) {
-            lines += `<rect x="${Math.min(p1x, x0 + ex * scale)}" y="${Math.min(p1y, p2y)}" width="${Math.abs(ex * scale - sx * scale)}" height="${Math.abs(p2y - p1y)}" fill="rgba(59,130,246,0.12)" stroke="rgba(37,99,235,0.25)" stroke-width="1" />`;
+            const rectX = Math.min(p1x, p2x);
+            const rectY = Math.min(p1y, p2y);
+            const rectW = Math.abs(p2x - p1x);
+            const rectH = Math.abs(p2y - p1y);
+            lines += `<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" fill="rgba(59,130,246,0.12)" />`;
           }
 
           if (k <= 8) {
             lines += `<text x="${midx}" y="${p1y - 10}" font-size="11" font-weight="800" fill="#2563eb" text-anchor="middle">${state.den}</text>`;
-            lines += `<text x="${x0 + ex * scale + 10}" y="${midy}" font-size="11" font-weight="800" fill="#dc2626" text-anchor="start">${state.num >= 0 ? '+' : ''}${state.num}</text>`;
+            lines += `<text x="${p2x + 10}" y="${midy}" font-size="11" font-weight="800" fill="#dc2626" text-anchor="start">${state.num >= 0 ? '+' : ''}${state.num}</text>`;
           }
         }
       }
@@ -614,8 +615,8 @@
       const num = state.num;
       const maxAbs = 10;
 
-      let nextX = (state.stepIndex + 1) * den;
-      let nextY = (state.stepIndex + 1) * num;
+      const nextX = (state.stepIndex + 1) * den;
+      const nextY = (state.stepIndex + 1) * num;
 
       if (Math.abs(nextX) > maxAbs || Math.abs(nextY) > maxAbs) {
         state.stepIndex = 0;
@@ -652,7 +653,6 @@
     }
 
     function toggleSlope() {
-      const btn = $('step-btn');
       const icon = $('slope-icon');
       const text = $('slope-text');
       if (!state.slopeAnimating) {
@@ -682,7 +682,7 @@
 
     function runSlope() {
       if (!state.slopeAnimating || state.currentTab !== 'slope') return;
-      const slope = state.num / state.den;
+      const slope = state.den === 0 ? 0 : state.num / state.den;
       const track = 8;
       const progress = (state.slopeProgress + 0.01) % 1;
       state.slopeProgress = progress;
@@ -724,24 +724,24 @@
       state.target = pick;
       state.targetReached = false;
       $('game-feedback').className = 'mt-3 text-xs font-black text-slate-700 bg-white/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2';
-      $('game-feedback').innerHTML = `<i class="fa-solid fa-crosshairs text-amber-500"></i><span>ターゲットは右に ${pick.x}、${pick.y >= 0 ? '上に' : '下に'} ${Math.abs(pick.y)} の位置です。スライダーで作ってね！</span>`;
+      $('game-feedback').innerHTML = `<i class="fa-solid fa-crosshairs text-amber-500"></i><span>ターゲットは右に ${pick.x}、${pick.y >= 0 ? '上に' : '下に'} ${Math.abs(pick.y)} の位置です。スライダーを調整してね！</span>`;
       drawGraph();
     }
 
     function checkGame() {
-      const slopeValue = state.num / state.den;
-      const targetSlope = state.target.y / state.target.x;
+      const slopeValue = state.den === 0 ? 0 : state.num / state.den;
+      const targetSlope = state.target.x === 0 ? 0 : state.target.y / state.target.x;
       const same = Math.abs(slopeValue - targetSlope) < 0.0001;
       if (same && !state.targetReached) {
         state.targetReached = true;
         state.gameScore += 100;
-        $('score').textContent = state.gameScore;
+        $('score').textContent = String(state.gameScore);
         $('game-feedback').className = 'mt-3 text-xs font-black text-emerald-900 bg-emerald-100 border border-emerald-300 rounded-xl p-3 flex items-center gap-2 flash-amber';
         $('game-feedback').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i><span>正解！傾きが ${state.target.y}/${state.target.x} に一致しました。</span>`;
       } else if (!same) {
         state.targetReached = false;
         $('game-feedback').className = 'mt-3 text-xs font-black text-slate-700 bg-white/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2';
-        $('game-feedback').innerHTML = `<i class="fa-solid fa-crosshairs text-amber-500"></i><span>まだ違うよ。目標の星を通るように、${state.target.x} 右・${state.target.y} 上下の傾きを作ろう！</span>`;
+        $('game-feedback').innerHTML = `<i class="fa-solid fa-crosshairs text-amber-500"></i><span>まだ違うよ。目標の星を通るように、${state.target.x} 右・${state.target.y} 上下の比にしてね。</span>`;
       }
     }
 
